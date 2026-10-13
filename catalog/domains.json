@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "domains": [
+    {
+      "id": "crm",
+      "title": "客户与销售 CRM",
+      "summary": "客户、联系人、商机与跟进"
+    },
+    {
+      "id": "erp",
+      "title": "企业资源 ERP",
+      "summary": "订单、采购、库存与资源核算"
+    },
+    {
+      "id": "mes",
+      "title": "制造执行 MES",
+      "summary": "工单、工序、在制品与产线"
+    },
+    {
+      "id": "wms",
+      "title": "仓储物流 WMS",
+      "summary": "库位、出入库、盘点与拣配"
+    },
+    {
+      "id": "scm",
+      "title": "供应链与供应商 SCM",
+      "summary": "供应商、供应计划与交付"
+    },
+    {
+      "id": "hrm",
+      "title": "人力资源 HRM",
+      "summary": "员工、招聘、入职与绩效"
+    },
+    {
+      "id": "finance",
+      "title": "财务与费用",
+      "summary": "应收应付、费用与预算"
+    },
+    {
+      "id": "oa",
+      "title": "办公与审批 OA",
+      "summary": "审批单、通知与办公申请"
+    },
+    {
+      "id": "itsm",
+      "title": "IT 服务与运维 ITSM",
+      "summary": "服务单、设备、事件与变更"
+    },
+    {
+      "id": "projects",
+      "title": "项目与研发协作",
+      "summary": "项目、任务、需求与交付"
+    },
+    {
+      "id": "analytics",
+      "title": "数据分析 BI",
+      "summary": "指标、数据集与分析结果"
+    },
+    {
+      "id": "dam",
+      "title": "数字资产管理 DAM",
+      "summary": "人物、图片、视频与素材版本"
+    },
+    {
+      "id": "cms",
+      "title": "内容与知识管理 CMS",
+      "summary": "内容、知识条目与发布版本"
+    },
+    {
+      "id": "marketing",
+      "title": "营销与内容制作",
+      "summary": "活动、创意、渠道与制作任务"
+    },
+    {
+      "id": "commerce",
+      "title": "电商与零售",
+      "summary": "商品、门店、交易与售后"
+    },
+    {
+      "id": "service",
+      "title": "客户服务",
+      "summary": "服务请求、知识、反馈与工单"
+    }
+  ]
+}

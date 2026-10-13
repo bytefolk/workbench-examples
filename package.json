@@ -1,0 +1,23 @@
+{
+  "name": "@bytefolk/workbench-examples",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SaaS and industry workbench scenarios, reusable case specifications, and interactive prototypes.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "validate": "node scripts/validate.mjs",
+    "test": "node --test",
+    "check": "npm run format:check && npm run validate && npm test",
+    "demo": "node scripts/serve.mjs"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "prettier": "3.6.2"
+  },
+  "license": "Apache-2.0"
+}

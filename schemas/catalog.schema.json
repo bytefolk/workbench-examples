@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "cases"],
+  "properties": {
+    "version": { "const": 1 },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "summary",
+          "domain",
+          "tags",
+          "status",
+          "path"
+        ],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+          "title": { "type": "string", "minLength": 1 },
+          "summary": { "type": "string", "minLength": 1 },
+          "domain": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+          "tags": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }
+          },
+          "status": {
+            "enum": [
+              "proposal",
+              "specified",
+              "prototype",
+              "integrated",
+              "verified"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "pattern": "^examples/[a-z][a-z0-9-]*/[a-z][a-z0-9-]*$"
+          }
+        }
+      }
+    }
+  }
+}

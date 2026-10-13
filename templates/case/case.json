@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "id": "REPLACE_CASE_ID",
+  "title": "REPLACE_TITLE",
+  "summary": "REPLACE_SUMMARY",
+  "domain": "REPLACE_DOMAIN",
+  "tags": [],
+  "status": "proposal",
+  "source": {
+    "date": "REPLACE_DATE",
+    "kind": "business-discussion",
+    "summary": "REPLACE_PUBLIC_SOURCE_SUMMARY",
+    "customerConfirmed": false
+  },
+  "dataMode": "synthetic",
+  "deliverables": {
+    "overview": "README.md",
+    "requirements": "requirements.md",
+    "workflows": "workflows.md",
+    "dataModel": "data-model.md",
+    "integrations": "integrations.md",
+    "acceptance": "acceptance.md",
+    "evidence": "evidence/verification.md"
+  },
+  "runtime": {
+    "mode": "none",
+    "command": "",
+    "entry": "",
+    "reset": "尚无运行状态；补充原型时填写重置方法。"
+  },
+  "capabilities": [
+    {
+      "id": "REPLACE_CAPABILITY_ID",
+      "title": "REPLACE_CAPABILITY_TITLE",
+      "mode": "unavailable",
+      "description": "REPLACE_CURRENT_BEHAVIOR"
+    }
+  ]
+}

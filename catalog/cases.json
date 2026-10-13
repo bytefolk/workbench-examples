@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "character-material-library",
+      "title": "人物素材资产库",
+      "summary": "集中管理人物、情绪素材与产品素材，并演示内容生成任务的准备和交接。",
+      "domain": "dam",
+      "tags": [
+        "marketing",
+        "video-generation",
+        "digital-human",
+        "virtual-try-on"
+      ],
+      "status": "prototype",
+      "path": "examples/dam/character-material-library"
+    }
+  ]
+}

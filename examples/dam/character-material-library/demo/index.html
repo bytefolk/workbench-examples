@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>人物素材资产库 · ByteFolk</title>
+    <link rel="stylesheet" href="/shared/demo.css" />
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/"
+        ><span class="mark">B</span> ByteFolk
+        <span class="muted">/ 人物素材资产库</span></a
+      >
+      <nav class="header-links">
+        <a href="../README.md">案例说明</a><a href="/">全部案例 ↗</a>
+      </nav>
+    </header>
+    <main>
+      <section class="hero">
+        <div>
+          <div class="eyebrow">Digital Asset Management / 001</div>
+          <h1>让人物素材，成为可复用的资产</h1>
+          <p>
+            整理人物、情绪与产品素材，核对使用范围，为内容制作准备清楚的输入。
+          </p>
+        </div>
+        <span class="badge blue">可交互原型</span>
+      </section>
+      <div class="notice">
+        演示模式：所有人物与素材均为虚构占位数据。任务仅模拟准备与交接，不生成视频、数字人或试戴结果。刷新页面恢复初始数据。
+      </div>
+      <section
+        id="people"
+        class="person-grid"
+        aria-label="人物与情绪素材"
+      ></section>
+      <div class="content-layout">
+        <section>
+          <div class="section-heading">
+            <div class="tabbar" role="group" aria-label="工作区切换">
+              <button id="assets-tab" class="active" aria-pressed="true">
+                素材库</button
+              ><button id="jobs-tab" aria-pressed="false">
+                任务记录 <span id="job-count">0</span>
+              </button>
+            </div>
+            <span id="asset-count" class="muted"></span>
+          </div>
+          <div id="asset-view">
+            <div class="toolbar">
+              <input
+                id="asset-search"
+                type="search"
+                placeholder="搜索人物、素材名称或标签"
+                aria-label="搜索素材"
+              /><select id="asset-type" aria-label="素材类型">
+                <option value="all">全部类型</option>
+                <option value="video">视频</option>
+                <option value="image">图片</option>
+                <option value="product">产品</option>
+              </select>
+            </div>
+            <div id="assets" class="grid"></div>
+            <div id="assets-empty" class="empty" hidden>
+              没有匹配素材，试试其他名称或类型。
+            </div>
+          </div>
+          <div id="job-view" hidden>
+            <div id="jobs"></div>
+            <div id="jobs-empty" class="empty">
+              <h3>还没有模拟任务</h3>
+              <p>选择右侧人物与素材，准备第一个内容制作任务。</p>
+            </div>
+          </div>
+        </section>
+        <aside class="panel form">
+          <h2>准备生成任务</h2>
+          <p>先核对人物与素材，再留下制作输入。当前只创建模拟记录。</p>
+          <form id="job-form">
+            <label for="job-character">人物</label
+            ><select id="job-character"></select
+            ><label for="job-material">人物基础素材</label
+            ><select id="job-material"></select
+            ><label for="job-product">产品素材</label
+            ><select id="job-product"></select>
+            <label for="job-kind">制作类型</label
+            ><select id="job-kind">
+              <option value="video">视频任务 · 模拟准备</option>
+              <option value="digital-human">数字人 · 尚未接入</option>
+              <option value="virtual-try-on">产品试戴 · 尚未接入</option>
+            </select>
+            <label for="job-usage">使用用途</label
+            ><select id="job-usage">
+              <option value="marketing">营销视频</option>
+              <option value="internal-demo">内部演示</option>
+            </select>
+            <label for="job-prompt">任务说明</label
+            ><textarea
+              id="job-prompt"
+              placeholder="例如：以轻松语气介绍新品眼镜，使用基础讲解素材。"
+              required
+            ></textarea>
+            <button class="primary" type="submit">创建模拟任务</button>
+            <div id="form-message" role="alert"></div>
+          </form>
+          <p>素材使用范围仅为演示规则；真实媒体需要接入后核验。</p>
+        </aside>
+      </div>
+      <p class="footer-note">
+        素材版本随任务保存。归档影响新任务选择，历史输入仍保留。
+      </p>
+    </main>
+    <dialog id="asset-dialog" aria-labelledby="detail-title">
+      <h2 id="detail-title"></h2>
+      <div id="detail-body"></div>
+      <div class="dialog-actions">
+        <button id="archive-asset">归档素材</button
+        ><button id="close-dialog" class="primary">关闭</button>
+      </div>
+    </dialog>
+    <div id="toast" class="toast" role="status"></div>
+    <script type="module" src="app.mjs"></script>
+  </body>
+</html>

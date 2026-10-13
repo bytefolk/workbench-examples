@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "id": "character-material-library",
+  "title": "人物素材资产库",
+  "summary": "集中管理人物、情绪素材与产品素材，并演示内容生成任务的准备和交接。",
+  "domain": "dam",
+  "tags": ["marketing", "video-generation", "digital-human", "virtual-try-on"],
+  "status": "prototype",
+  "source": {
+    "date": "2026-10-13",
+    "kind": "business-discussion",
+    "summary": "从当日业务讨论的文字内容抽象：内部资产库、人物基础情绪视频、视频生成、主播卖货和人物试戴。私人聊天、截图和客户身份不入库；截图与客户补充资料尚未核实。",
+    "customerConfirmed": false
+  },
+  "dataMode": "synthetic",
+  "deliverables": {
+    "overview": "README.md",
+    "requirements": "requirements.md",
+    "workflows": "workflows.md",
+    "dataModel": "data-model.md",
+    "integrations": "integrations.md",
+    "acceptance": "acceptance.md",
+    "evidence": "evidence/verification.md"
+  },
+  "runtime": {
+    "mode": "static-local",
+    "command": "npm run demo",
+    "entry": "demo/index.html",
+    "reset": "重新加载浏览器页面，恢复固定合成数据；没有持久化。"
+  },
+  "capabilities": [
+    {
+      "id": "asset-browse",
+      "title": "素材检索与详情",
+      "mode": "local",
+      "description": "搜索、类型筛选、人物情绪素材概览、使用范围查看与归档。"
+    },
+    {
+      "id": "generation-handoff",
+      "title": "生成任务准备",
+      "mode": "mock",
+      "description": "按人物与产品素材生成任务输入快照，验证演示使用范围；仅模拟任务，不产生媒体。"
+    },
+    {
+      "id": "video-generation",
+      "title": "视频生成",
+      "mode": "unavailable",
+      "description": "等待选定模型服务、异步任务接口与客户质量标准。"
+    },
+    {
+      "id": "digital-human",
+      "title": "真人形象数字人",
+      "mode": "unavailable",
+      "description": "等待人物建模、驱动或数字人服务接入。"
+    },
+    {
+      "id": "virtual-try-on",
+      "title": "产品试戴",
+      "mode": "unavailable",
+      "description": "等待试戴服务、所需输入格式与产品适用范围确认。"
+    }
+  ]
+}

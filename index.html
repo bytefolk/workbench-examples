@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>ByteFolk · 工作台案例库</title>
+    <link rel="stylesheet" href="shared/demo.css" />
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/"
+        ><span class="mark">B</span> ByteFolk
+        <span class="muted">/ 工作台案例库</span></a
+      >
+      <nav class="header-links">
+        <a href="docs/case-standard.md">案例规范</a
+        ><a href="https://github.com/bytefolk/workbench-examples">GitHub ↗</a>
+      </nav>
+    </header>
+    <main>
+      <section class="hero">
+        <div>
+          <div class="eyebrow">Workbench Examples</div>
+          <h1>从业务场景，到可体验的工作台</h1>
+          <p>
+            把真实工作中的需求，沉淀为可演示、可验证、可复用的案例。按业务领域探索，选择一个场景开始。
+          </p>
+        </div>
+        <a class="button" href="CONTRIBUTING.md">新增案例指南 ↗</a>
+      </section>
+      <div class="notice">
+        当前案例使用合成数据。原型的模拟流程与待接入能力会在案例内明确说明。
+      </div>
+      <div class="layout">
+        <aside class="panel sidebar">
+          <h3>业务领域</h3>
+          <div id="domains"></div>
+        </aside>
+        <section>
+          <div class="toolbar">
+            <input
+              id="search"
+              type="search"
+              placeholder="搜索工作台、场景或标签"
+              aria-label="搜索案例"
+            /><select id="domain-select" aria-label="筛选业务领域">
+              <option value="all">全部领域</option>
+            </select>
+          </div>
+          <p id="summary" class="catalog-summary" aria-live="polite"></p>
+          <div id="cases" class="grid"></div>
+          <div id="empty" class="empty" hidden>
+            <h3>这个领域还没有案例</h3>
+            <p>已定义分类，等待实际业务需求和案例收录。</p>
+            <a href="CONTRIBUTING.md">查看新增案例指南 →</a>
+          </div>
+        </section>
+      </div>
+      <p class="footer-note">
+        ByteFolk Workbench Examples · 案例规格、合成数据与实际验证证据一起维护。
+      </p>
+    </main>
+    <script type="module" src="catalog/app.mjs"></script>
+  </body>
+</html>

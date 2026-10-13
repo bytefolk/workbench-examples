@@ -1,0 +1,135 @@
+{
+  "characters": [
+    {
+      "id": "char-linxia",
+      "name": "林夏",
+      "description": "虚构的品牌讲解人物，具备五种基础情绪素材。",
+      "rights": {
+        "status": "approved",
+        "allowedUsages": ["internal-demo", "marketing"]
+      }
+    },
+    {
+      "id": "char-zhouning",
+      "name": "周宁",
+      "description": "虚构的新品演示人物，使用范围仍待确认。",
+      "rights": { "status": "pending", "allowedUsages": ["internal-demo"] }
+    }
+  ],
+  "assets": [
+    {
+      "id": "asset-neutral",
+      "name": "林夏 · 基础讲解",
+      "type": "video",
+      "characterId": "char-linxia",
+      "emotion": "neutral",
+      "version": 1,
+      "status": "active",
+      "rights": {
+        "status": "approved",
+        "allowedUsages": ["internal-demo", "marketing"]
+      },
+      "tags": ["讲解", "正面"],
+      "source": "合成占位素材；无真实视频"
+    },
+    {
+      "id": "asset-happy",
+      "name": "林夏 · 喜",
+      "type": "video",
+      "characterId": "char-linxia",
+      "emotion": "happy",
+      "version": 1,
+      "status": "active",
+      "rights": {
+        "status": "approved",
+        "allowedUsages": ["internal-demo", "marketing"]
+      },
+      "tags": ["情绪", "喜"],
+      "source": "合成占位素材；无真实视频"
+    },
+    {
+      "id": "asset-angry",
+      "name": "林夏 · 怒",
+      "type": "video",
+      "characterId": "char-linxia",
+      "emotion": "angry",
+      "version": 2,
+      "status": "active",
+      "rights": { "status": "approved", "allowedUsages": ["internal-demo"] },
+      "tags": ["情绪", "怒"],
+      "source": "合成占位素材；仅内部演示用途"
+    },
+    {
+      "id": "asset-sad",
+      "name": "林夏 · 哀",
+      "type": "video",
+      "characterId": "char-linxia",
+      "emotion": "sad",
+      "version": 1,
+      "status": "active",
+      "rights": {
+        "status": "approved",
+        "allowedUsages": ["internal-demo", "marketing"]
+      },
+      "tags": ["情绪", "哀"],
+      "source": "合成占位素材；无真实视频"
+    },
+    {
+      "id": "asset-joyful",
+      "name": "林夏 · 乐",
+      "type": "video",
+      "characterId": "char-linxia",
+      "emotion": "joyful",
+      "version": 1,
+      "status": "active",
+      "rights": {
+        "status": "approved",
+        "allowedUsages": ["internal-demo", "marketing"]
+      },
+      "tags": ["情绪", "乐"],
+      "source": "合成占位素材；无真实视频"
+    },
+    {
+      "id": "asset-portrait",
+      "name": "周宁 · 人物参考图",
+      "type": "image",
+      "characterId": "char-zhouning",
+      "emotion": null,
+      "version": 1,
+      "status": "active",
+      "rights": { "status": "pending", "allowedUsages": ["internal-demo"] },
+      "tags": ["参考", "待确认"],
+      "source": "合成占位素材；无真实人像"
+    },
+    {
+      "id": "asset-product-glasses",
+      "name": "晴光 · 眼镜产品图",
+      "type": "product",
+      "characterId": null,
+      "emotion": null,
+      "version": 1,
+      "status": "active",
+      "rights": {
+        "status": "approved",
+        "allowedUsages": ["internal-demo", "marketing"]
+      },
+      "tags": ["眼镜", "新品"],
+      "source": "虚构商品占位图"
+    },
+    {
+      "id": "asset-product-headphones",
+      "name": "轻声 · 耳机产品图",
+      "type": "product",
+      "characterId": null,
+      "emotion": null,
+      "version": 1,
+      "status": "active",
+      "rights": {
+        "status": "approved",
+        "allowedUsages": ["internal-demo", "marketing"]
+      },
+      "tags": ["耳机", "新品"],
+      "source": "虚构商品占位图"
+    }
+  ]
+}
