@@ -4,16 +4,23 @@
   "private": true,
   "description": "SaaS and industry workbench scenarios, reusable case specifications, and interactive prototypes.",
   "type": "module",
+  "workspaces": [
+    "examples/*/*/workbench"
+  ],
   "engines": {
-    "node": ">=22"
+    "node": ">=22.12"
   },
   "scripts": {
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "validate": "node scripts/validate.mjs",
-    "test": "node --test",
-    "check": "npm run format:check && npm run validate && npm test",
-    "demo": "node scripts/serve.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "build": "npm run build --workspaces --if-present",
+    "test:cases": "npm run test --workspaces --if-present && npm run test:poc --workspaces --if-present",
+    "test:e2e": "npm run test:e2e --workspaces --if-present",
+    "persona:dev": "npm run dev --workspace persona-studio-demo",
+    "check": "npm run format:check && npm run build && npm run validate && npm test && npm run test:cases",
+    "demo": "npm run build && node scripts/serve.mjs"
   },
   "devDependencies": {
     "ajv": "^8.17.1",

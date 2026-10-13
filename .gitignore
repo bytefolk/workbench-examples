@@ -8,3 +8,7 @@ Thumbs.db
 coverage/
 playwright-report/
 test-results/
+**/dist/
+*.tsbuildinfo
+**/.local/
+**/poc/runs/

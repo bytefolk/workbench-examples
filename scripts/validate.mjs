@@ -178,7 +178,7 @@ export async function validateRepository() {
   return {
     domains: domains.domains.length,
     cases: catalog.cases.length,
-    assets: fixtures.assets.length,
+    legacyDemoAssets: fixtures.assets.length,
   };
 }
 

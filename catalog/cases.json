@@ -3,8 +3,8 @@
   "cases": [
     {
       "id": "character-material-library",
-      "title": "人物素材资产库",
-      "summary": "集中管理人物、情绪素材与产品素材，并演示内容生成任务的准备和交接。",
+      "title": "本色 Persona Studio · 企业数字人工作台",
+      "summary": "管理人物与素材版本，通过需求解析、模拟视频生成、人工审核和成片归档演示企业内容制作闭环。",
       "domain": "dam",
       "tags": [
         "marketing",
