@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "台账交换包 v1（proposal）",
-  "description": "只约束交换包外形；不代表已有导入接口，也不能替代 dataset registry 的表结构、业务、引用和提交校验。",
+  "title": "台账交换包 v1",
+  "description": "约束通用交换包外形；工厂运行时已实现 factory-operations v1。各提供方仍须完成 dataset registry 的表结构、业务、引用与事务提交校验。",
   "type": "object",
   "additionalProperties": false,
   "required": [

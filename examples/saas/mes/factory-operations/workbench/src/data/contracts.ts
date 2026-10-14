@@ -1,3 +1,4 @@
+import type { LedgerExchange, Provenance } from "./exchange-contracts";
 /** 工厂运营工作台的稳定业务契约；适配器负责转换服务端格式。 */
 export type MemberRole = "owner" | "manager" | "operator" | "sales";
 export interface UserIdentity {
@@ -40,6 +41,7 @@ export interface AssetRef {
   size: number;
   storagePath: string;
   createdAt: string;
+  sha256?: string;
 }
 export interface ReportInput {
   kind: ReportKind;
@@ -60,6 +62,7 @@ export interface OperationReport extends ReportInput {
   version: number;
   fragmentsRecovered: boolean;
   assets: AssetRef[];
+  provenance?: Provenance;
 }
 export interface TransitionInput {
   reportId: string;
@@ -81,6 +84,7 @@ export interface TimelineEntry {
   action: string;
   note: string;
   createdAt: string;
+  provenance?: Provenance;
 }
 export interface VisitInput {
   customer: string;
@@ -95,6 +99,7 @@ export interface SalesVisit extends VisitInput {
   workspaceId: string;
   createdBy: string;
   createdAt: string;
+  provenance?: Provenance;
 }
 export interface OperationsRepository {
   listWorkspaces(): Promise<Workspace[]>;
@@ -126,6 +131,8 @@ export interface DataServices {
   operations: OperationsRepository;
   assets: AssetStore;
   provider: string;
+  /** 老提供方可暂不实现；界面必须明确显示未支持，不能回退成前端循环写入。 */
+  exchange?: LedgerExchange;
 }
 export interface DataConfiguration {
   provider: string;

@@ -4,7 +4,8 @@ import { createSupabaseServices } from "./supabase";
 
 export const configurationStorageKey = "factory-operations-provider-config";
 export function composeDataServices(
-  ports: Pick<DataServices, "identity" | "operations" | "assets">,
+  ports: Pick<DataServices, "identity" | "operations" | "assets"> &
+    Partial<Pick<DataServices, "exchange">>,
   provider = "custom",
 ): DataServices {
   return { ...ports, provider };

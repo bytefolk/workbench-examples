@@ -63,6 +63,23 @@
 5. **资产**：文件正文进入受控资产存储；数据库保留稳定 ID、对象路径、类型、大小和时间。校验文件类型/大小，不把短时 URL 作为长期引用。
 6. **输入和错误**：服务端再次校验输入；客户端校验只用于交互。失败不能写半条状态或返回虚假成功。
 
+## 可选台账交换能力
+
+`DataServices.exchange?: LedgerExchange` 在三个基础端口之外提供工作区快照、预览和原子发布；类型见 [exchange-contracts.ts](../examples/saas/mes/factory-operations/workbench/src/data/exchange-contracts.ts)。组合提供方可注入自己的交换服务。它协调业务库与资产引用，不改变三个基础端口的职责，也不要求使用 Supabase。
+
+| 方法与路径                            | 请求                                           | 成功响应                                                       |
+| ------------------------------------- | ---------------------------------------------- | -------------------------------------------------------------- |
+| `GET /workspaces/:id/ledger/source`   | 无                                             | `DatasetState`：工作区名称、revision、来源、存储范围、识别模式 |
+| `GET /workspaces/:id/ledger/export`   | 无                                             | `LedgerPackage`：一致快照与资产清单                            |
+| `POST /workspaces/:id/ledger/preview` | `{packageText, mode: "replace", replaceScope}` | `ImportPreview`：计划、目标版本、表数量、错误与警告            |
+| `POST /workspaces/:id/ledger/commit`  | `{planId, expectedRevision, requestId}`        | `ImportResult`：已发布版本、来源与数量                         |
+
+`packageText` 是完整 JSON 原文；服务端在解析为丢失重复键的普通对象前检查重复键。提交的 `requestId` 同时放入 `Idempotency-Key`。客户端不自动重试失败写入；响应丢失后显式重试沿用相同请求 ID，服务端对相同计划返回原结果，复用为不同内容时报冲突。
+
+工厂 v1 仅所有者可导出、预览及提交，拒绝跨工作区数据包、未登记或不匹配的资产，以及包内业务引用未声明的资产；资产清单可以是当前已登记资产的子集，恢复保留全部当前资产和范围外行的合法引用；服务端校验最终候选库，以工作区 revision 和一次事务发布。原生写入也要参与相同版本与锁顺序。预览失败返回逐表/行/字段错误，提交权限不足为 403、版本冲突为 409，不能返回虚假成功。无此能力或尚未部署路由时显示未支持/请求失败，不能用普通列表拼接完整备份或循环删写记录。
+
+完整范围、来源与资产边界见 [台账交换契约](ledger-exchange.md)。现有 HTTP 客户端仅通过调用契约测试；企业实现须再验证权限、并发、事务失败和文件读取。工厂实现支持同工作区恢复，资产正文仍在原平台；既非跨提供方备份迁移，也不包含已接通的 `/api/vision/ledger` 服务。
+
 ## MySQL 与现有资产平台
 
 企业可用任意服务端技术实现上述 HTTP API。将 `OperationsRepository` 对应实体映射为 MySQL 表和事务，把 `AssetStore` 映射到现有资产平台，把 `IdentityProvider` 映射到账号或企业身份系统。浏览器不承担数据库连接池、SQL 执行或资产服务管理员身份。

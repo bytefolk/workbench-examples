@@ -33,6 +33,7 @@ import {
   roleLabels,
 } from "./ui";
 import { allowedMediaTypes, validateAsset } from "./domain/rules";
+import { SourceBadge } from "./SourceBadge";
 
 export function VisitsPage({
   visits,
@@ -89,6 +90,7 @@ export function VisitsPage({
                 </div>
                 <FileText size={19} className="muted" />
               </div>
+              <SourceBadge source={visit.provenance} />
               <p className="visit-summary preserve-lines">{visit.summary}</p>
               <div className="visit-section">
                 <span>客户问题</span>

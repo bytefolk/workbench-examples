@@ -166,5 +166,18 @@ export function createHttpServices(
         ).url;
       },
     },
+    exchange: {
+      getDatasetState: (id) => request(`${workspace(id)}/ledger/source`),
+      exportSnapshot: (id) => request(`${workspace(id)}/ledger/export`),
+      previewImport: (id, input) =>
+        request(`${workspace(id)}/ledger/preview`, "POST", input),
+      commitImport: (id, input) =>
+        request(
+          `${workspace(id)}/ledger/commit`,
+          "POST",
+          input,
+          input.requestId,
+        ),
+    },
   };
 }

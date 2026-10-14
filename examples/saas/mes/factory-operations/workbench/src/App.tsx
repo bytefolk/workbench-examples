@@ -13,6 +13,7 @@ import {
   CheckCheck,
   ChevronDown,
   ClipboardList,
+  DatabaseZap,
   Factory,
   FolderOpen,
   LayoutDashboard,
@@ -34,6 +35,9 @@ import type {
   Workspace,
 } from "./data/contracts";
 import { createConfiguredProvider } from "./data";
+import type { DatasetState } from "./data/exchange-contracts";
+import { DataExchangePage } from "./DataExchangePage";
+import { DatasetSourceBar } from "./SourceBadge";
 import { AuthScreen } from "./AuthScreen";
 import { ReportDetail, ReportForm, ReportsPage, ReportTable } from "./Reports";
 import {
@@ -53,12 +57,19 @@ import {
   roleLabels,
 } from "./ui";
 
-type Page = "overview" | "reports" | "visits" | "assets" | "settings";
+type Page =
+  | "overview"
+  | "reports"
+  | "visits"
+  | "assets"
+  | "exchange"
+  | "settings";
 const navigation = [
   { id: "overview" as const, title: "工作台概览", icon: LayoutDashboard },
   { id: "reports" as const, title: "工厂申领", icon: ClipboardList },
   { id: "visits" as const, title: "销售拜访", icon: Users },
   { id: "assets" as const, title: "资产资料", icon: FolderOpen },
+  { id: "exchange" as const, title: "数据接入", icon: DatabaseZap },
 ];
 const configured = createConfiguredProvider();
 
@@ -135,6 +146,8 @@ function WorkspaceApp({
   const [reports, setReports] = useState<OperationReport[]>([]);
   const [visits, setVisits] = useState<SalesVisit[]>([]);
   const [assets, setAssets] = useState<AssetRef[]>([]);
+  const [datasetState, setDatasetState] = useState<DatasetState | null>(null);
+  const [sourceIssue, setSourceIssue] = useState("");
   const [error, setError] = useState("");
   const [page, setPage] = useState<Page>("overview");
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -151,24 +164,29 @@ function WorkspaceApp({
   activeWorkspaceId.current = workspaceId;
   const canCreateReport = Boolean(workspace && workspace.role !== "sales");
   const canCreateVisit = Boolean(workspace && workspace.role !== "operator");
-  const loadWorkspaces = useCallback(async () => {
-    setInitialLoading(true);
-    setError("");
-    try {
-      const items = await services.operations.listWorkspaces();
-      setWorkspaces(items);
-      const saved = localStorage.getItem(`factory-workspace-${user.id}`);
-      setWorkspaceId((current) =>
-        items.some((item) => item.id === current)
-          ? current
-          : (items.find((item) => item.id === saved)?.id ?? items[0]?.id ?? ""),
-      );
-    } catch (reason) {
-      setError(errorMessage(reason));
-    } finally {
-      setInitialLoading(false);
-    }
-  }, [services, user.id]);
+  const loadWorkspaces = useCallback(
+    async (showLoading = true) => {
+      if (showLoading) setInitialLoading(true);
+      setError("");
+      try {
+        const items = await services.operations.listWorkspaces();
+        setWorkspaces(items);
+        const saved = localStorage.getItem(`factory-workspace-${user.id}`);
+        setWorkspaceId((current) =>
+          items.some((item) => item.id === current)
+            ? current
+            : (items.find((item) => item.id === saved)?.id ??
+              items[0]?.id ??
+              ""),
+        );
+      } catch (reason) {
+        setError(errorMessage(reason));
+      } finally {
+        if (showLoading) setInitialLoading(false);
+      }
+    },
+    [services, user.id],
+  );
   useEffect(() => {
     void loadWorkspaces();
   }, [loadWorkspaces]);
@@ -180,24 +198,57 @@ function WorkspaceApp({
       activeWorkspaceId.current === workspaceId;
     setDataLoading(true);
     setError("");
+    const readSource = async (): Promise<{
+      state: DatasetState | null;
+      issue: string;
+    }> => {
+      if (!services.exchange)
+        return { state: null, issue: "当前数据平台未提供来源元信息。" };
+      try {
+        const state = await services.exchange.getDatasetState(workspaceId);
+        return state?.workspaceId === workspaceId &&
+          typeof state.revision === "string"
+          ? { state, issue: "" }
+          : { state: null, issue: "当前数据平台未提供有效来源元信息。" };
+      } catch {
+        return { state: null, issue: "来源信息暂时无法读取，刷新后重试。" };
+      }
+    };
     try {
-      const [reportItems, visitItems, assetItems] = await Promise.all([
-        services.operations.listReports(workspaceId),
-        canCreateVisit
-          ? services.operations.listVisits(workspaceId)
-          : Promise.resolve<SalesVisit[]>([]),
-        services.assets.list(workspaceId),
-      ]);
-      if (!isCurrent()) return;
-      setReports(
-        reportItems.sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-      );
-      setVisits(
-        visitItems.sort((a, b) => b.visitedAt.localeCompare(a.visitedAt)),
-      );
-      setAssets(
-        assetItems.sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-      );
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const before = await readSource();
+        if (!isCurrent()) return;
+        const [reportItems, visitItems, assetItems] = await Promise.all([
+          services.operations.listReports(workspaceId),
+          canCreateVisit
+            ? services.operations.listVisits(workspaceId)
+            : Promise.resolve<SalesVisit[]>([]),
+          services.assets.list(workspaceId),
+        ]);
+        if (!isCurrent()) return;
+        const after = await readSource();
+        if (!isCurrent()) return;
+        if (
+          before.state &&
+          after.state &&
+          before.state.revision !== after.state.revision
+        )
+          continue;
+        setReports(
+          reportItems.sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+        );
+        setVisits(
+          visitItems.sort((a, b) => b.visitedAt.localeCompare(a.visitedAt)),
+        );
+        setAssets(
+          assetItems.sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+        );
+        // Only label records with a source whose revision brackets the entire read.
+        setDatasetState(before.state && after.state ? after.state : null);
+        setSourceIssue(before.issue || after.issue);
+        return;
+      }
+      throw new Error("工作区正在更新，暂时无法读取一致数据，请稍后刷新。");
     } catch (reason) {
       if (isCurrent()) setError(errorMessage(reason));
     } finally {
@@ -209,6 +260,8 @@ function WorkspaceApp({
     setReports([]);
     setVisits([]);
     setAssets([]);
+    setDatasetState(null);
+    setSourceIssue("");
     setSelectedReport(null);
     setPreview(null);
     setModal(null);
@@ -234,6 +287,8 @@ function WorkspaceApp({
     setReports([]);
     setVisits([]);
     setAssets([]);
+    setDatasetState(null);
+    setSourceIssue("");
     setSelectedReport(null);
     setPreview(null);
     setModal(null);
@@ -309,7 +364,7 @@ function WorkspaceApp({
         <div className="sidebar-lower">
           <div className="workspace-note">
             <span className="connection-dot" />
-            <span>真实数据 · 团队协作</span>
+            <span>团队协作 · 来源可追溯</span>
             <p>每次操作，都有迹可循。</p>
           </div>
           <button
@@ -422,10 +477,24 @@ function WorkspaceApp({
             </div>
           ) : (
             <>
+              <DatasetSourceBar
+                label={datasetState?.label}
+                source={
+                  datasetState
+                    ? { contentOrigin: datasetState.contentOrigin }
+                    : null
+                }
+                storage={datasetState?.storage}
+                revision={datasetState?.revision}
+                recognitionModes={datasetState?.recognitionModes}
+                loading={dataLoading}
+                issue={sourceIssue}
+              />
               {dataLoading &&
               !reports.length &&
               !visits.length &&
-              !assets.length ? (
+              !assets.length &&
+              page !== "exchange" ? (
                 <Loading />
               ) : (
                 <>
@@ -476,6 +545,20 @@ function WorkspaceApp({
                       services={services}
                       workspace={workspace}
                       onNewWorkspace={() => setModal("workspace")}
+                    />
+                  )}
+                  {page === "exchange" && (
+                    <DataExchangePage
+                      key={workspace.id}
+                      services={services}
+                      workspace={workspace}
+                      user={user}
+                      onPublished={async () => {
+                        if (activeWorkspaceId.current !== workspace.id) return;
+                        await loadWorkspaces(false);
+                        await refresh();
+                      }}
+                      onAssetUploaded={refresh}
                     />
                   )}
                 </>

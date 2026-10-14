@@ -34,6 +34,7 @@ import {
   statusLabels,
 } from "./ui";
 import { maxAssetBytes, validateAsset, validateReport } from "./domain/rules";
+import { SourceBadge } from "./SourceBadge";
 
 export function ReportTable({
   reports,
@@ -88,6 +89,9 @@ export function ReportTable({
                     </small>
                   </span>
                 </button>
+                <div className="row-source">
+                  <SourceBadge source={report.provenance} />
+                </div>
               </td>
               <td>{report.contractNumber}</td>
               <td>{report.station}</td>
@@ -558,6 +562,7 @@ export function ReportDetail({
     >
       <div className="detail-status">
         <StatusBadge status={report.status} />
+        <SourceBadge source={report.provenance} />
         <span className="muted">
           创建于 {formatDate(report.createdAt, true)}
         </span>
@@ -707,6 +712,7 @@ export function ReportDetail({
                   <time>{formatDate(entry.createdAt, true)}</time>
                   <p>{entry.note || "已记录此次操作"}</p>
                   <small>操作人 {entry.actorId.slice(0, 8)}</small>
+                  <SourceBadge source={entry.provenance} />
                 </div>
               </li>
             ))}

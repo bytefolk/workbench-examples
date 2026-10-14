@@ -7,16 +7,19 @@
     "dev": "vite --host 127.0.0.1 --port 4318 --strictPort",
     "build": "tsc -b && vite build",
     "test": "vitest run",
+    "test:sql": "node --test ../supabase/tests/ledger-exchange.test.mjs",
     "test:e2e": "playwright test",
     "preview": "vite preview --host 127.0.0.1 --port 4318 --strictPort"
   },
   "dependencies": {
+    "ajv": "8.20.0",
     "@supabase/supabase-js": "2.117.3",
     "lucide-react": "0.468.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.10",
     "@playwright/test": "1.64.0",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",

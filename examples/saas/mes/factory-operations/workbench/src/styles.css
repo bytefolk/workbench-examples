@@ -1337,7 +1337,10 @@ svg {
   font-weight: 500;
 }
 .form-stack input,
-.form-stack textarea {
+.form-stack textarea,
+.draft-row input,
+.draft-row textarea,
+.exchange-panel select {
   border: 1px solid #dde6d6;
   background: #fff;
   border-radius: 7px;
@@ -1352,7 +1355,8 @@ svg {
   color: #b0bda2;
   font-weight: 400;
 }
-.form-stack textarea {
+.form-stack textarea,
+.draft-row textarea {
   resize: vertical;
   line-height: 1.8;
 }
@@ -2851,4 +2855,402 @@ svg {
 .provider-option strong,
 .current-provider strong {
   color: #557b40;
+}
+
+/* Data provenance stays visible independently of the active business page. */
+.dataset-source-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 13px 16px;
+  margin-bottom: 25px;
+  border: 1px solid #dfe8e0;
+  border-radius: 11px;
+  background: #edf3ed;
+}
+.dataset-source-icon {
+  color: #55775d;
+  display: flex;
+}
+.dataset-source-copy {
+  display: grid;
+  gap: 4px;
+  flex: 1;
+  min-width: 150px;
+}
+.dataset-source-copy strong {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.dataset-source-copy > span,
+.source-issue {
+  font-size: 10px;
+  color: #66776d;
+}
+.source-issue {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-basis: 100%;
+}
+.source-badge {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 4px 7px;
+  border-radius: 5px;
+  background: #edf0ed;
+  color: #63736a;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.5;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+.source-synthetic {
+  color: #8b6528;
+  background: #f7efdf;
+}
+.source-user-imported {
+  color: #426d62;
+  background: #e7f0eb;
+}
+.source-mixed {
+  color: #70608a;
+  background: #efebf5;
+}
+.row-source {
+  margin: 5px 0 0 42px;
+}
+.visit-card > .source-badge {
+  margin: 0 0 16px;
+}
+.asset-info .source-badge {
+  margin-top: 9px;
+}
+.exchange-layout {
+  display: grid;
+  gap: 20px;
+}
+.exchange-panel {
+  padding: 24px;
+  min-width: 0;
+}
+.exchange-panel h2 {
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.exchange-panel > p {
+  margin: 9px 0 18px;
+  font-size: 12px;
+  line-height: 1.8;
+  color: #708074;
+}
+.exchange-panel .error-banner {
+  margin: 14px 0;
+}
+.exchange-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+.exchange-modes button {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+}
+.exchange-modes button[aria-pressed="true"] {
+  border-color: #608b74;
+  color: var(--green);
+  background: #eaf1e9;
+}
+.exchange-steps {
+  display: flex;
+  gap: 15px;
+  padding: 0;
+  margin: 20px 0;
+  list-style: none;
+  color: #718073;
+  flex-wrap: wrap;
+  font-size: 11px;
+}
+.exchange-steps li {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+.exchange-steps b {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  background: #edf2ed;
+  border-radius: 50%;
+  font-size: 10px;
+}
+.exchange-input {
+  border: 1px dashed #b9cbbd;
+  background: #f8faf7;
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.exchange-input > div {
+  flex: 1;
+  min-width: 180px;
+}
+.exchange-input strong {
+  display: block;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.exchange-input p {
+  margin-top: 7px;
+  color: #788777;
+  font-size: 11px;
+  line-height: 1.7;
+}
+.exchange-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 18px 0;
+}
+.exchange-toolbar > .muted {
+  margin-left: auto;
+  font-size: 11px;
+}
+.exchange-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.exchange-table th {
+  padding: 11px 13px;
+  background: #f2f5f0;
+  color: #71816d;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+}
+.exchange-table td {
+  padding: 12px 13px;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.7;
+  vertical-align: top;
+}
+.exchange-table .deletion-count {
+  color: #a26244;
+  font-weight: 600;
+}
+.exchange-errors {
+  margin: 18px 0;
+  padding: 14px 18px;
+  background: #faf0eb;
+  border: 1px solid #f0d9cd;
+  border-radius: 9px;
+}
+.exchange-errors h3 {
+  font-size: 12px;
+  color: #9b5d43;
+}
+.exchange-errors ul {
+  font-size: 11px;
+  padding-left: 20px;
+  margin-bottom: 0;
+}
+.exchange-errors li {
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.exchange-confirmation {
+  margin-top: 20px;
+  padding: 18px;
+  background: #fcf8ee;
+  border: 1px solid #eee3c8;
+  border-radius: 10px;
+}
+.exchange-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 12px;
+  line-height: 1.8;
+  cursor: pointer;
+}
+.exchange-check input {
+  width: 16px;
+  height: 16px;
+  margin-top: 3px;
+  accent-color: var(--green);
+  flex-shrink: 0;
+}
+.exchange-confirmation p {
+  color: #867454;
+  font-size: 11px;
+  margin: 9px 0 16px 25px;
+  line-height: 1.7;
+}
+.exchange-receipt {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 17px 19px;
+  background: #e8f2eb;
+  border: 1px solid #c7ddcc;
+  border-radius: 10px;
+  color: #426c4c;
+}
+.exchange-receipt strong {
+  font-size: 13px;
+}
+.exchange-receipt p {
+  margin-top: 7px;
+  line-height: 1.8;
+  font-size: 11px;
+}
+.draft-warning {
+  display: flex;
+  gap: 11px;
+  padding: 15px 17px;
+  margin: 18px 0;
+  background: #f7f0e1;
+  border-radius: 9px;
+  color: #866725;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.draft-warning svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.draft-row {
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 13px;
+}
+.draft-row-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 17px;
+}
+.draft-row-heading h3 {
+  font-size: 13px;
+}
+.draft-row .form-grid {
+  margin-top: 13px;
+}
+.draft-json {
+  display: block;
+  width: 100%;
+  min-height: 230px;
+  resize: vertical;
+  border: 1px solid #dce5dc;
+  border-radius: 8px;
+  padding: 13px;
+  font:
+    11px/1.8 ui-monospace,
+    monospace;
+  color: #455b4c;
+  background: #fbfcfa;
+}
+.exchange-preview-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.ledger-photo-preview {
+  margin: 18px 0;
+  border: 1px solid var(--border);
+  background: #f3f5f1;
+  padding: 12px;
+  border-radius: 10px;
+}
+.ledger-photo-preview img {
+  display: block;
+  max-height: 320px;
+  max-width: 100%;
+  width: auto;
+  margin: auto;
+  object-fit: contain;
+  border-radius: 6px;
+}
+.ledger-photo-preview figcaption {
+  text-align: center;
+  font-size: 11px;
+  color: #75836d;
+  line-height: 1.7;
+  margin-top: 10px;
+}
+.exchange-preview-heading p {
+  font-size: 11px;
+  color: #71816d;
+  margin-top: 8px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.exchange-caption {
+  color: #77866f;
+  font-size: 11px;
+  line-height: 1.8;
+  margin-top: 12px;
+}
+@media (max-width: 700px) {
+  .dataset-source-bar {
+    padding: 12px;
+    gap: 9px;
+    margin-bottom: 20px;
+  }
+  .dataset-source-copy {
+    min-width: 130px;
+  }
+  .dataset-source-bar > .source-badge {
+    margin-left: 27px;
+  }
+  .exchange-panel {
+    padding: 18px;
+  }
+  .exchange-input {
+    padding: 16px;
+  }
+  .exchange-input > .button {
+    width: 100%;
+    justify-content: center;
+  }
+  .exchange-preview-heading {
+    flex-direction: column;
+  }
+  .exchange-steps {
+    gap: 9px;
+  }
+  .exchange-table {
+    min-width: 400px;
+  }
+  .draft-row {
+    padding: 14px;
+  }
+  .exchange-confirmation {
+    padding: 14px;
+  }
 }

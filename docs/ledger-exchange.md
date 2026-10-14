@@ -1,6 +1,6 @@
 # 台账整包交换契约 v1
 
-状态：**proposal / 参考设计**。本文、[JSON Schema](../schemas/ledger-package.schema.json) 和 [空模板](../templates/ledger-package/README.md) 提供可评审的交换约定；现有工厂工作台没有批量导入、整包替换、一致快照导出或台账识别接口。通过本 schema 只证明包的结构，不代表业务有效、已连接服务或可以提交。
+状态：**通用参考契约，含工厂案例实现**。本文、[JSON Schema](../schemas/ledger-package.schema.json) 和 [空模板](../templates/ledger-package/README.md) 定义交换边界；[工厂工作台](../examples/saas/mes/factory-operations/README.md) 实现了下述受限范围。通过 schema 只证明包的结构，不代表业务有效、已连接服务或可以提交；实际部署证据单独记录。
 
 ## 包格式与业务注册契约
 
@@ -18,7 +18,7 @@
 
 exportScope 声明 `{completeness: full | partial, tables: [...]}`，表名须与包内 tables 完全一致。full 表示源数据集声明表的全部业务行，不代表未列出的表；角色过滤或条件筛选后的导出必须为 partial。partial 包不能用于表级或整库 replace，若需导入应另行定义合并契约。模板的 exportScope 为 null。
 
-dataset registry 尚待各案例实现，必须明确：允许和必需的表、字段 schema、ID 唯一范围、枚举、日期及数值精度、跨表引用、流程约束、分析/行动记录、资产规则、导入权限和数量上限。它决定具体台账模型；此通用 schema 不硬编码 ERP 表，也不把库存流水转换成耗材申领。工厂身份由该契约的工厂档案及工厂 ID 引用承载，metadata.label 仅供显示。预览须列明来源工厂到目标工厂的映射及冲突，不能靠同名或包内标识自动覆盖其他工厂；目标工作区仍由当前会话确定。
+dataset registry 由各案例实现，必须明确：允许和必需的表、字段 schema、ID 唯一范围、枚举、日期及数值精度、跨表引用、流程约束、分析/行动记录、资产规则、导入权限和数量上限。它决定具体台账模型；此通用 schema 不硬编码 ERP 表，也不把库存流水转换成耗材申领。工厂身份由该契约的工厂档案及工厂 ID 引用承载，metadata.label 仅供显示。预览须列明来源工厂到目标工厂的映射及冲突，不能靠同名或包内标识自动覆盖其他工厂；目标工作区仍由当前会话确定。
 
 数字和日期按字段契约严格处理：禁止自动把空白或非法数字变为 0、截断小数、丢失前导零的标识或默默换算单位。超出安全整数范围的数值、金额和精确小数采用契约声明的十进制字符串或最小单位整数。日期须检查真实年月日和时区规则，不能接受自动滚动成下个月的日期；schema 的时间戳正则只检查外形。JSON 重复对象键、重复行 ID 均报错，禁止采用“最后一条覆盖前一条”。
 
@@ -43,7 +43,7 @@ replace 只接受已验证完整范围的 full 快照；不能只信任包自报
 
 ## 提交、原子性与导出
 
-建议增加独立的可选交换服务：`exportSnapshot(workspaceId)`、`previewImport(workspaceId, package, replaceScope)`、`commitImport({planId, expectedRevision, requestId})`。现有 IdentityProvider、OperationsRepository、AssetStore 的职责保持独立，交换服务通过部署适配器协调它们，不绑定特定数据库。
+交换能力是独立的可选 `LedgerExchange`：`getDatasetState(workspaceId)`、`exportSnapshot(workspaceId)`、`previewImport(workspaceId, {packageText, mode, replaceScope})`、`commitImport(workspaceId, {planId, expectedRevision, requestId})`。预览保留 JSON 原文到可信服务端，避免客户端先解析丢失重复键。IdentityProvider、OperationsRepository、AssetStore 的职责保持独立，交换服务通过部署适配器协调它们，不绑定特定数据库。没有此能力的提供方明确显示未支持，不通过前端循环写入替代。
 
 预览结果 planId 绑定包摘要、契约版本、替换范围、目标工作区和目标数据版本。提交时再次确认授权与契约有效性，并以 expectedRevision 检查并发：预览后其他成员新增、审批或修改数据，旧计划应冲突退出，不能覆盖其结果。所有影响候选库的正常写入也必须推进目标版本；只检查单条单据 version 不足以保证整包替换。
 
@@ -55,9 +55,21 @@ replace 只接受已验证完整范围的 full 快照；不能只信任包自报
 
 ## 拍照台账适配器
 
-`POST /api/vision/ledger` 只是拟议 HTTP adapter 契约，不是本仓库已接通的服务。对接阶段按 **mock** 流程设计；现有工厂工作台仍无识别实现。未来真实实现需另行验证并声明 connected，不通过改按钮文案升级能力。
+`POST /api/vision/ledger` 仍是拟议 HTTP adapter 契约，当前没有可调用的 OCR 服务。工厂工作台已提供 **mock** 拍照核对流程：保存照片、生成固定规则的合成草稿、对照原图编辑、人工确认，再走相同预览与提交；模拟器不读取照片内容。真实实现需另行验证并声明 connected，不通过改按钮文案升级能力。
 
 建议请求 `{workspaceId, assetId, ledgerType, requestId}`，返回 `{draftId, schemaVersion, mode, sourceAssetId, rows, warnings}`。rows 保留原图位置、识别值和缺失字段。服务端校验资产可读性；地址来自部署配置。识别只产草稿，经用户核对后送入同一预览/提交流程；照片中的“完成”“付款”或“回收”文字不能自动触发对应业务动作。保留识别来源，人工复核不消除 mock 标记。
+
+## 工厂案例已实现的范围
+
+注册契约为 `factory-operations` v1，业务表为 `factory`、`reports`、`report-events`、`visits`。工厂档案始终包含在范围内，ID 必须等于当前工作区；当前界面导入和导出四表全量快照。完整字段见 [工厂数据模型](../examples/saas/mes/factory-operations/data-model.md)。这不是完整 ERP 台账，不接受未声明的库存、采购或财务表。
+
+- 仅工作区所有者执行导出、预览和提交；新提供方仍需在服务端实现这些权限。JSON 最大 5 MiB、嵌套最多 40 层，每表最多 10000 行；UUID、字段、日期、整数、枚举、事件状态链和引用均严格校验。
+- 仅同工作区恢复，包内资产清单必须是当前已登记资产的有效子集，逐项元信息、稳定引用和 SHA-256 一致；传入业务行所用附件及识别原图必须在包中声明。候选库保留当前全部资产，范围外保留行按当前清单校验，备份后新增的无关资产不阻止恢复。文件正文留在原资产平台，成员、登录信息和连接设置不随包替换；不能用这份 JSON 完成跨工作区或跨提供方迁移。
+- 普通快照可恢复旧业务状态，但必须通过当前数据的预览和并发检查；不会重放审批或通知。照片模拟草稿额外绑定生成时快照版本，生成后已有成员更新时必须重新生成和核对，不能覆盖中间写入。
+- 来源从业务行汇总，`factory` 档案不参与合成/用户提供的汇总。已有同 ID 记录的来源、识别模式及原图引用不可通过替换改写；人工确认保留 mock 与 synthetic。
+- 空格式模板依旧不可执行。需要真实字段骨架时先导出当前工作区；新增申领/拜访还必须满足事件、历史操作者与资产规则，不能只填页面主表。
+
+客户端领域与 HTTP 契约已有针对性测试；Supabase 新交换迁移的本地数据库测试和实际部署结果以 [案例验证记录](../examples/saas/mes/factory-operations/evidence/verification.md) 为准。本轮没有在此前 QA 云项目应用交换迁移，不能把既有登录/审批的 connected 证据延伸为新增整包功能的云端验证。
 
 ## 最小验收
 

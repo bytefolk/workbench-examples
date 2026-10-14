@@ -64,7 +64,7 @@
 
 ## 演示与验证
 
-台账整包交换与拍照识别接入可参考 [台账交换契约（proposal）](ledger-exchange.md)。该材料只定义扩展约定，不代表现有案例已提供批量导入或 OCR。数据一致性与来源标注的检查示例见 [factory-smart-ops 复核](factory-smart-ops-review.md)。
+台账整包交换可参考 [台账交换契约](ledger-exchange.md)。通用 schema 只校验结构；工厂案例已提供同工作区恢复、原子提交适配和明确标注的拍照模拟草稿，具体测试及未验证的部署范围见案例证据。其他案例不能据此声明已支持导入或 OCR。数据一致性与来源标注的检查示例见 [factory-smart-ops 复核](factory-smart-ops-review.md)。
 
 - 运行步骤从干净检出开始，明确依赖、启动 URL、外部调用与重置方法。
 - 演示数据可重复加载，使用虚构人物、商品与素材，不依赖私人账号。

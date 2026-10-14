@@ -16,7 +16,7 @@
     "validate": "node scripts/validate.mjs",
     "test": "node --test tests/*.test.mjs",
     "build": "npm run build --workspaces --if-present",
-    "test:cases": "npm run test --workspaces --if-present && npm run test:poc --workspaces --if-present",
+    "test:cases": "npm run test --workspaces --if-present && npm run test:poc --workspaces --if-present && npm run test:sql --workspaces --if-present",
     "test:catalog": "playwright test --config catalog/playwright.config.ts",
     "test:e2e": "npm run test:catalog && npm run test:e2e --workspaces --if-present",
     "persona:dev": "npm run dev --workspace persona-studio-demo",
