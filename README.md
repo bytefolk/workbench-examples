@@ -1,15 +1,17 @@
 # ByteFolk Workbench Examples
 
-面向 SaaS 与行业业务场景的工作台案例库。从业务需求出发，沉淀可以演示、验证和复用的工作台。
+工作台案例资产库：按 **SaaS / PaaS / IaaS → 业务领域 → 标准主干 → 场景变体 → 案例实现** 沉淀可复用方案。先找业务场景，再看标准流程与差异，最后复用已有实现和验证材料。
 
 ## 从这里开始
 
-- [场景分类](docs/domains.md)：CRM、ERP、MES、DAM 等 16 个业务领域。
-- [案例目录](catalog/cases.json)：机器可读索引，目前包含两个案例。
-- [本色 Persona Studio · 企业数字人工作台](examples/dam/character-material-library/README.md)：首个 DAM 案例，含六页工作台、业务规格、合成数据与制作审核闭环。
-- [MUSE 缪思 · 品牌数字人技术验证工作台](examples/dam/brand-digital-human-studio/README.md)：四页工作台、图片上传、候选确认、可播放示意样片及可配置的阿里云万相、声音复刻/TTS/对口型与Higgsfield本机适配代码。
-- [案例规范](docs/case-standard.md)：目录、元信息、交付状态与验收要求。
-- [新增案例](CONTRIBUTING.md)：从模板开始，提交前执行检查。
+- [分类目录](docs/domains.md)：SaaS 的 60 个领域，按 10 个业务族组织；保留 PaaS 8 类和 IaaS 5 类。
+- [案例资产模型](docs/case-assets.md)：22 个标准主干、44 个场景变体，以及从项目差异回收共性的方式。
+- [案例索引](catalog/cases.json)：目前三个参考实现，尚无按项目证据收录的实际项目案例。
+- [本色 Persona Studio](examples/saas/dam/character-material-library/README.md)：DAM 内容资产主干 → 数字人内容制作变体 → 素材管理与模拟制作审核实现。
+- [MUSE 缪思](examples/saas/dam/brand-digital-human-studio/README.md)：复用 DAM 数字人内容制作变体，演示品牌资产、候选确认、模拟生成与审核复用；保留待真实验证的模型适配。
+- [工厂运营工作台](examples/saas/mes/factory-operations/README.md)：MES 生产运营主干 → 服装车间耗材变体 → 申领、审批配送、回收与销售拜访实现。
+- [案例规范](docs/case-standard.md)与[贡献指南](CONTRIBUTING.md)：关联、来源、运行、证据与维护要求。
+- [目录验证记录](docs/evidence/catalog-assets.md)：本次资产关系、浏览交互与回归检查。
 
 ```bash
 npm ci
@@ -17,52 +19,72 @@ npm run check
 npm run demo
 ```
 
-打开 <http://127.0.0.1:4173>。目录入口可按领域筛选；首个案例可管理人物与素材、解析需求、模拟视频任务、人工审核和归档溯源。`npm run demo` 先构建工作台再提供统一目录服务，目录入口全部使用合成数据，不连接外部 SaaS 或生成模型。MUSE 的真实接口验证需按其案例说明单独启动工作台及本机代理，默认关闭付费调用。
+打开统一首页 <http://127.0.0.1:4173>，按业务族、领域、行业与关键词查找主干、变体和实现，查看它们的关系与材料。目录浏览无需登录或数据库。主干和变体是参考设计，数量与可运行实现、实际项目分别统计。
 
-需要 Node.js 22.12 或更新版本。Windows 若使用 `\\wsl.localhost\...` 工作目录，请在 WSL 中执行 npm 命令；Windows npm 的默认脚本 shell 不支持 UNC 工作目录。
+Persona Studio 与 MUSE 使用合成数据演示素材与模拟视频制作。MUSE 保留独立本机模型适配代码，公开目录只运行模拟流程，真实模型效果尚未验证。工厂运营工作台保留已实现的数据服务接入，运行该案例时按其 README 配置。账号系统不属于当前目录建设的重点。
+
+需要 Node.js 22.12 或更新版本。Windows 若使用 `\\wsl.localhost\...` 工作目录，请在 WSL 中执行 npm 命令。
+
+## 三种可复用资产
+
+| 资产     | 保存的内容                                   | 当前收录                   |
+| -------- | -------------------------------------------- | -------------------------- |
+| 标准主干 | 稳定角色、业务对象、流程、页面与扩展点       | 22 个参考设计              |
+| 场景变体 | 行业和使用情境，以及相对主干需要改变的内容   | 44 个参考设计              |
+| 案例实现 | 代码、运行入口、业务规格、接入情况与验证证据 | 3 个参考实现；0 个项目案例 |
+
+例如，新车间项目可以先定位 MES 主干，再找到适合的场景变体，复用已有工厂实现的适用部分。共性进入主干，行业差异留在变体，具体项目的交付与证据留在案例里。不会因为新增分类或参考设计就增加实际案例数量。
+
+目录中的 `caseKind` 表示参考实现或项目案例；`status` 表示实现成熟度，两者独立。Persona Studio 与 MUSE 为 `prototype`，工厂运营为 `integrated`；现有材料支持原型和技术接入验证，不作为已交付客户项目展示。
 
 ## 目录结构
 
 ```text
-catalog/                     # 领域字典与案例索引
-docs/                        # 分类规则、案例规范、架构与推进方式
-schemas/                     # 本仓库的案例、分类和索引 JSON Schema
-templates/case/              # 新案例模板（不算已交付案例）
-examples/<domain>/<case>/
-  case.json                  # 标识、状态、入口、能力与接入声明
-  README.md                  # 场景说明与运行入口
-  requirements.md            # 已知需求、MVP 建议、待确认问题
-  workflows.md               # 角色、步骤、状态与异常
-  data-model.md              # 业务实体、关系与约束
-  integrations.md            # 外部能力、接口与接入状态
+catalog/
+  service-models.json         # SaaS / PaaS / IaaS
+  domain-groups.json          # 业务族
+  domains.json                # 领域及所属业务族
+  blueprints.json             # 标准主干
+  variants.json               # 场景变体及其主干
+  cases.json                  # 实现索引及主干、变体关联
+docs/                        # 分类、资产模型、规范与验证记录
+schemas/                     # JSON Schema
+templates/case/              # 新案例模板，不计入案例
+examples/<serviceModel>/<domain>/<case>/
+  case.json                  # 关联、来源、状态、运行与能力
+  README.md                  # 适用场景、复用边界与运行说明
+  requirements.md            # 事实、需求与待确认事项
+  workflows.md               # 角色、流程、状态与异常
+  data-model.md              # 实体、关系与约束
+  integrations.md            # 数据提供方、配置与能力状态
   acceptance.md              # 验收条件与检查方法
-  data/                      # 合成演示数据及其 schema
-  demo/                      # 简版或静态演示
-  workbench/                 # 完整工作台源码（npm workspace，可选）
-  evidence/                  # 实际检查记录与限制
-scripts/                     # 索引校验与本地演示服务
-tests/                       # 业务边界与仓库检查的验证
+  data/                      # 合成数据及 schema
+  demo/                      # 简版或静态演示（可选）
+  workbench/                 # 工作台源码（可选 npm workspace）
+  evidence/                  # 实际检查与可公开的项目证据
+scripts/                     # 关系、路径、数据校验与目录服务
+tests/                       # 仓库和业务规则验证
 ```
 
-## 案例状态
+业务主干通过 ID 与变体、案例关联。案例代码继续保留一个稳定目录，跨领域用标签检索，不为每个变体复制工作台。
 
-`proposal → specified → prototype → integrated → verified`。状态表示已有证据覆盖的最高阶段，详细定义见[案例规范](docs/case-standard.md)。首个案例为 **prototype**：素材管理与任务编排可以演示，视频生成、真人形象数字人和产品试戴尚未接入。
+## 部署与数据独立选择
 
-没有案例的领域仅列在分类字典中；不会用空目录或占位页面表示已有产品。
+分类按工作台解决的问题确定，与云厂商、数据库或部署方式无关。SaaS 下的工作台模板可以在本地或企业环境运行；分类不代表已经提供托管 SaaS 服务。
+
+[数据提供方契约](docs/data-provider-contract.md)保留身份、业务和资产三个独立端口。工厂实现支持 Supabase 组合和标准 HTTP 客户端；使用 MySQL 或企业资产平台的部署者可以实现对应后端。主干、变体和案例关联不绑定 Supabase，也不要求统一账号方案。
+
+工厂工作台的「数据接入」已实现整包快照导出、校验预览和事务替换，覆盖工厂档案、生产申领、流转历史与销售拜访。照片先存入资产平台，再生成可编辑的模拟草稿，人工核对后通过同一导入流程入账；页面与记录持续显示数据来源。交换能力通过可选 `LedgerExchange` 端口接入，具体范围、数据库迁移和本地验证见[工厂案例](examples/saas/mes/factory-operations/README.md)。
 
 ## 与 ByteFolk 其他仓库的关系
 
-| 仓库                                                                                   | 在本案例库中的用途                                                                 |
-| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| [design-system](https://github.com/bytefolk/design-system)                             | 正式工作台可复用的设计令牌、组件与应用框架；当前案例保留交接工作台的原有组件与设计 |
-| [digital-employee](https://github.com/bytefolk/digital-employee)                       | 需要数字员工执行任务时采用的包契约与运行能力；每个案例单独声明接入                 |
-| [digital-employee-quickstart](https://github.com/bytefolk/digital-employee-quickstart) | 数字员工包和组织示例，保持其现有格式；本仓库存放面向业务用户的工作台场景           |
-| [roleweave](https://github.com/bytefolk/roleweave)                                     | 有岗位协作需求的案例可接入的桌面工作区；不是所有工作台的必需运行环境               |
+| 仓库                                                                                   | 在本案例库中的用途                                   |
+| -------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| [design-system](https://github.com/bytefolk/design-system)                             | 可复用设计令牌、组件与应用框架，案例记录实际采用情况 |
+| [digital-employee](https://github.com/bytefolk/digital-employee)                       | 需要 Agent 执行任务时引用的包契约与运行能力          |
+| [digital-employee-quickstart](https://github.com/bytefolk/digital-employee-quickstart) | 数字员工包和组织示例                                 |
+| [roleweave](https://github.com/bytefolk/roleweave)                                     | 有岗位协作需求时可接入的桌面工作区                   |
 
-`case.json` 与 `catalog/` 是本仓库的案例资产格式，不是这些产品的新 API。案例中的数字人指媒体生成的真人或虚拟形象；数字员工指处理任务的 Agent，两者各自声明能力与依赖。
+机器可读资产为后续检索、知识库与技能编写提供材料；本仓库不自动创建或发布技能。数字人指媒体中的真人或虚拟形象，数字员工指处理任务的 Agent，各自声明能力与依赖。
 
-## 名称与发布范围
-
-仓库名使用 **workbench-examples**，SaaS 是描述和分类标签。范围也覆盖制造、内容制作和可自托管工作台。
-
-代码和文档采用 Apache-2.0。公开内容只包含抽象需求和合成数据；案例要收录真实客户内容时，先完成其来源、发布范围和授权核对，不提交凭据或私人聊天记录。
+代码和文档采用 Apache-2.0。公开内容仅保留抽象需求、合成数据和可公开证据；不提交私人聊天、客户身份或凭据。

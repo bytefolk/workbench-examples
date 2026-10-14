@@ -1,0 +1,577 @@
+{
+  "version": 1,
+  "variants": [
+    {
+      "id": "industrial-account-visits",
+      "blueprintId": "crm-sales-pipeline",
+      "title": "工业客户拜访与长周期商机",
+      "summary": "面对多角色采购决策，保留技术问题、报价前置条件及长期跟进行动。",
+      "industries": ["工业制造", "工业设备"],
+      "adaptations": [
+        "客户下增加工厂与决策联系人角色",
+        "拜访记录要求问题、下一步行动和日期",
+        "商机阶段设置技术确认与样品验证门槛",
+        "按客户归属隔离销售记录，主管查看团队机会"
+      ]
+    },
+    {
+      "id": "professional-services-opportunities",
+      "blueprintId": "crm-sales-pipeline",
+      "title": "专业服务项目商机",
+      "summary": "把客户诉求转成服务范围、预估人日和可交付承诺，再交接项目团队。",
+      "industries": ["咨询服务", "设计服务"],
+      "adaptations": [
+        "商机增加服务范围和预计人日",
+        "提案阶段需交付团队确认资源容量",
+        "成交交接生成项目启动清单",
+        "分离预计合同金额与正式财务收入"
+      ]
+    },
+    {
+      "id": "b2b-product-support",
+      "blueprintId": "service-request-resolution",
+      "title": "企业产品技术支持",
+      "summary": "围绕版本、环境和服务合同处理可复现问题及升级。",
+      "industries": ["企业软件", "工业设备"],
+      "adaptations": [
+        "请求关联产品版本、部署环境和服务合同",
+        "严重事件记录复现步骤与诊断附件",
+        "按合同工作日历计算响应与解决时限",
+        "解决后保留关联缺陷和知识文章"
+      ]
+    },
+    {
+      "id": "retail-after-sales",
+      "blueprintId": "service-request-resolution",
+      "title": "零售交易售后",
+      "summary": "根据订单与商品权益处理退换、补发和消费者确认。",
+      "industries": ["零售", "电商"],
+      "adaptations": [
+        "受理时关联交易订单及收货状态",
+        "退换规则区分商品类型与时间窗口",
+        "退款调用支付适配器并记录唯一请求号",
+        "关闭前核验物流与退款回执"
+      ]
+    },
+    {
+      "id": "b2b-event-campaign",
+      "blueprintId": "marketing-campaign-delivery",
+      "title": "企业展会营销",
+      "summary": "围绕展会物料、报名线索和销售接手效果进行活动闭环。",
+      "industries": ["工业制造", "企业服务"],
+      "adaptations": [
+        "活动增加展位、场次与物料交付日期",
+        "报名线索按同意范围和去重规则入库",
+        "活动后给销售分派跟进责任与期限",
+        "效果区分报名、到场和有效商机"
+      ]
+    },
+    {
+      "id": "consumer-brand-launch",
+      "blueprintId": "marketing-campaign-delivery",
+      "title": "消费品牌新品传播",
+      "summary": "管理多渠道创意规格、上市节奏和品牌审批。",
+      "industries": ["消费品", "美妆"],
+      "adaptations": [
+        "创意任务按渠道比例、时长和语言拆分",
+        "素材审核加入品牌规范及使用授权检查",
+        "上市日期控制内容可见及发布窗口",
+        "效果按渠道、素材版本和活动批次汇总"
+      ]
+    },
+    {
+      "id": "multi-store-retail",
+      "blueprintId": "commerce-store-operations",
+      "title": "连锁门店运营",
+      "summary": "跟踪门店价格执行、商品可售和到店售后，允许区域差异。",
+      "industries": ["连锁零售", "餐饮零售"],
+      "adaptations": [
+        "商品配置门店可售范围与区域价格",
+        "库存展示区分门店可售和锁定量",
+        "退换处理需要原交易与门店权限校验",
+        "经营指标按门店和营业日汇总"
+      ]
+    },
+    {
+      "id": "b2b-ordering-portal",
+      "blueprintId": "commerce-store-operations",
+      "title": "企业客户订货门户",
+      "summary": "提供客户协议价、起订量和账期下单的交易运营流程。",
+      "industries": ["批发分销", "工业耗材"],
+      "adaptations": [
+        "客户分配协议价目表与商品目录",
+        "订单检查起订量、包装单位和信用额度",
+        "交易可先审批再交OMS履约",
+        "结算采用账期对账而非默认即时支付"
+      ]
+    },
+    {
+      "id": "distribution-receivables",
+      "blueprintId": "finance-settlement-control",
+      "title": "经销回款与账龄",
+      "summary": "核对经销商订单、收款及折让，关注信用额度和逾期。",
+      "industries": ["批发分销", "消费品"],
+      "adaptations": [
+        "收款允许一笔对应多张结算单",
+        "折让和返利需独立复核依据",
+        "逾期与信用额度联动提示订单风险",
+        "对账单按经销商及币种生成"
+      ]
+    },
+    {
+      "id": "supplier-payables",
+      "blueprintId": "finance-settlement-control",
+      "title": "采购应付与付款计划",
+      "summary": "按采购、收货和发票差异组织应付复核与资金安排。",
+      "industries": ["制造业", "连锁零售"],
+      "adaptations": [
+        "付款依据关联采购订单、收货和发票",
+        "数量或价格差异进入人工争议队列",
+        "付款批次按到期日和资金计划排程",
+        "经办人与付款复核人职责分离"
+      ]
+    },
+    {
+      "id": "office-employee-onboarding",
+      "blueprintId": "hrm-employee-lifecycle",
+      "title": "办公员工入职与调动",
+      "summary": "将人事生效信息与账号、工位和行政服务清单联动。",
+      "industries": ["企业服务", "科技企业"],
+      "adaptations": [
+        "入职任务按部门岗位生成账号和设备清单",
+        "直属主管只访问本部门必要字段",
+        "调动按生效日期变更组织和授权",
+        "离职交接核对设备归还和账号撤销回执"
+      ]
+    },
+    {
+      "id": "multi-site-worker-lifecycle",
+      "blueprintId": "hrm-employee-lifecycle",
+      "title": "多工厂员工入转调离",
+      "summary": "支持工厂归属、岗位资格与跨厂调动的人员档案协作。",
+      "industries": ["制造业", "物流仓储"],
+      "adaptations": [
+        "主档增加工厂、班组和岗位资格",
+        "跨厂调动要求接收方确认到岗日期",
+        "岗位变更联动培训与排班接口",
+        "各厂人事按组织范围访问，集团查看汇总"
+      ]
+    },
+    {
+      "id": "safety-certification-training",
+      "blueprintId": "lms-training-compliance",
+      "title": "岗位安全培训与复训",
+      "summary": "按岗位风险和资格有效期组织实操、考试与到期复训。",
+      "industries": ["制造业", "物流仓储"],
+      "adaptations": [
+        "课程绑定岗位和资格有效期",
+        "通过条件包含理论考试和实操签认",
+        "未通过或到期产生复训任务",
+        "资格状态通过接口供排班系统核验"
+      ]
+    },
+    {
+      "id": "customer-product-academy",
+      "blueprintId": "lms-training-compliance",
+      "title": "客户产品培训",
+      "summary": "向外部客户按产品版本提供学习内容并跟踪上线准备。",
+      "industries": ["企业软件", "工业设备"],
+      "adaptations": [
+        "学员按客户组织隔离课程与结果",
+        "课程关联产品版本和上线里程碑",
+        "客户管理员查看本组织完成率",
+        "证书仅作为培训记录，不默认外部资质认可"
+      ]
+    },
+    {
+      "id": "make-to-order-supply",
+      "blueprintId": "scm-supply-exception-control",
+      "title": "订单驱动制造供需协调",
+      "summary": "从客户交期倒查缺料和产能，记录各方承诺变更。",
+      "industries": ["装备制造", "定制制造"],
+      "adaptations": [
+        "缺口直接关联客户订单与交期",
+        "供应替代方案记录质量和设计确认",
+        "生产插单需记录受影响订单",
+        "关闭异常前回读采购及生产实际回执"
+      ]
+    },
+    {
+      "id": "seasonal-retail-supply",
+      "blueprintId": "scm-supply-exception-control",
+      "title": "季节性零售供应协同",
+      "summary": "在促销窗口内协调供应到货与门店分配，处理滞销和短缺。",
+      "industries": ["服饰零售", "消费品"],
+      "adaptations": [
+        "需求快照按季节和促销活动分版",
+        "分配方案考虑门店优先级与可售天数",
+        "供应延迟需给出替代渠道或取消建议",
+        "复盘保留缺货与积压的实际差异"
+      ]
+    },
+    {
+      "id": "critical-material-suppliers",
+      "blueprintId": "srm-supplier-qualification",
+      "title": "关键物料供应商准入",
+      "summary": "把样品验证、质量资质和持续供货能力作为准入门槛。",
+      "industries": ["电子制造", "装备制造"],
+      "adaptations": [
+        "资质按物料风险级别配置",
+        "准入必须包含样品或试供验证结果",
+        "绩效关联批次质量和交付准时率",
+        "资质失效暂停新增采购的接口需明确确认"
+      ]
+    },
+    {
+      "id": "outsourced-service-suppliers",
+      "blueprintId": "srm-supplier-qualification",
+      "title": "外包服务商管理",
+      "summary": "用服务能力、人员资质和合同服务表现评估合作方。",
+      "industries": ["物业服务", "企业服务"],
+      "adaptations": [
+        "准入收集服务地域、人员资格与保险资料",
+        "评分以服务时限、投诉和履约记录为依据",
+        "整改任务按服务站点分配",
+        "供应商仅访问自身材料与整改记录"
+      ]
+    },
+    {
+      "id": "batch-expiry-warehouse",
+      "blueprintId": "wms-warehouse-execution",
+      "title": "批次效期仓储",
+      "summary": "以批次、效期与隔离状态约束上架、拣选和盘点。",
+      "industries": ["食品", "日化"],
+      "adaptations": [
+        "收货要求批次和效期信息",
+        "库存分可用、隔离和待检状态",
+        "拣选优先效期且拦截过期批次",
+        "盘点差异按库位与批次复核"
+      ]
+    },
+    {
+      "id": "spare-parts-warehouse",
+      "blueprintId": "wms-warehouse-execution",
+      "title": "设备备件仓储",
+      "summary": "管理零件号、替代料、维修领退与可修复件回库。",
+      "industries": ["工业设备", "维修服务"],
+      "adaptations": [
+        "物料增加兼容设备和替代料关系",
+        "领料关联维修工单及使用人",
+        "退回件区分完好、待修和报废",
+        "盘点结合序列号或高价值单件记录"
+      ]
+    },
+    {
+      "id": "regional-distribution-transport",
+      "blueprintId": "tms-shipment-dispatch",
+      "title": "区域门店配送",
+      "summary": "按门店收货窗口和线路汇总多点配送，记录拒收与短少。",
+      "industries": ["连锁零售", "消费品"],
+      "adaptations": [
+        "装载计划按门店时窗和卸货顺序组织",
+        "运单支持多站点签收节点",
+        "短少与拒收关联订单行及回仓计划",
+        "运费按线路、里程和站点附加费复核"
+      ]
+    },
+    {
+      "id": "cross-border-freight-coordination",
+      "blueprintId": "tms-shipment-dispatch",
+      "title": "跨境货运协同",
+      "summary": "追踪多段承运、单证交接与境外节点，保持贸易审批边界。",
+      "industries": ["跨境电商", "国际贸易"],
+      "adaptations": [
+        "运单拆分起运、干线及目的地运输段",
+        "每段记录承运商、计划和实际节点",
+        "单证通过GTM接口引用，不内置法律结论",
+        "运费区分币种、段费与目的港附加费"
+      ]
+    },
+    {
+      "id": "garment-workshop-consumables",
+      "blueprintId": "mes-production-operations",
+      "title": "服装车间断针与耗材申领",
+      "summary": "围绕合同、物料和工位记录照片上报，经主管批准、配送及断针回收确认完成闭环。",
+      "industries": ["服装制造", "纺织加工"],
+      "adaptations": [
+        "上报关联合同号、物料编号、工位、原因和附件；断针至少一份证据",
+        "状态采用提交、批准、配送、完成或驳回；断针完成前必须确认回收",
+        "操作员上报，主管或工作区所有者处理审批和回收",
+        "销售拜访作为CRM扩展，记录纪要、问题与下一次跟进日期"
+      ]
+    },
+    {
+      "id": "assembly-station-reporting",
+      "blueprintId": "mes-production-operations",
+      "title": "装配工位报工与异常追踪",
+      "summary": "以序列号和工序为线索记录完工、返工与缺料，支持工序交接。",
+      "industries": ["离散制造", "电子装配"],
+      "adaptations": [
+        "执行对象改为工单、工序和产品序列号",
+        "报工区分合格、返工和报废数量并校验总量",
+        "异常分派质量或物料责任人，不能仅靠报工自动关闭",
+        "交接需要上道工序完成条件与下道接收记录"
+      ]
+    },
+    {
+      "id": "equipment-design-change",
+      "blueprintId": "plm-engineering-change",
+      "title": "装备设计变更",
+      "summary": "评估设计修订对在制设备、库存和已交付产品的影响。",
+      "industries": ["装备制造", "机械设计"],
+      "adaptations": [
+        "BOM按设备型号与配置版本管理",
+        "变更标记在制、在库及已交付影响范围",
+        "生效方式支持序列号或日期边界",
+        "发布前要求制造和售后对影响方案会签"
+      ]
+    },
+    {
+      "id": "consumer-product-launch",
+      "blueprintId": "plm-engineering-change",
+      "title": "消费品新品开发",
+      "summary": "协调配方或结构、包装规格和上市前的设计冻结。",
+      "industries": ["消费品", "日化"],
+      "adaptations": [
+        "产品结构区分内容物、包装与标签版本",
+        "变更记录试样验证及包装兼容性",
+        "上市门槛包含设计冻结与供应准备确认",
+        "设计资产引用DAM，商品渠道文案交PIM"
+      ]
+    },
+    {
+      "id": "incoming-material-inspection",
+      "blueprintId": "qms-quality-corrective-action",
+      "title": "来料检验与供应商整改",
+      "summary": "对到货批次检验和隔离，形成供应商反馈与复评依据。",
+      "industries": ["电子制造", "装备制造"],
+      "adaptations": [
+        "检验单关联供应商、采购与到货批次",
+        "抽样规则按物料风险与供应商等级确定",
+        "不合格处置控制待检库存释放",
+        "纠正措施可分派供应商并跟踪复检结果"
+      ]
+    },
+    {
+      "id": "process-quality-containment",
+      "blueprintId": "qms-quality-corrective-action",
+      "title": "制程质量异常与围堵",
+      "summary": "识别产线问题影响范围，记录临时围堵、原因和恢复条件。",
+      "industries": ["汽车零部件", "离散制造"],
+      "adaptations": [
+        "异常关联工序、设备与生产批次",
+        "围堵范围包含在制、库存和已发运批次引用",
+        "恢复生产需要处置授权及验证记录",
+        "效果验证按后续批次结果复核，避免只填完成状态"
+      ]
+    },
+    {
+      "id": "factory-equipment-maintenance",
+      "blueprintId": "eam-maintenance-work-orders",
+      "title": "工厂设备维修与预防保养",
+      "summary": "连接设备停机、备件消耗与生产恢复确认。",
+      "industries": ["制造业", "加工行业"],
+      "adaptations": [
+        "设备台账关联产线、工位和关键程度",
+        "保养周期可按运行时长触发",
+        "维修工单记录停机起止及备件去向",
+        "恢复前由现场责任人确认试运行结果"
+      ]
+    },
+    {
+      "id": "distributed-site-maintenance",
+      "blueprintId": "eam-maintenance-work-orders",
+      "title": "分布式站点设备维护",
+      "summary": "支持跨站点设备巡检、外包维修和远程复核。",
+      "industries": ["连锁商业", "能源服务"],
+      "adaptations": [
+        "设备按区域与站点划分访问范围",
+        "工单匹配服务区域及可用技师",
+        "维修回执要求照片、时间与现场确认",
+        "高风险维修需总部复核，外包方只见受派工单"
+      ]
+    },
+    {
+      "id": "digital-human-content-production",
+      "blueprintId": "dam-content-assets",
+      "title": "企业数字人内容制作",
+      "summary": "围绕人物素材、授权、制作需求、生成任务和人工审核组织可复用内容。",
+      "industries": ["企业营销", "数字内容制作"],
+      "adaptations": [
+        "资产增加人物、肖像或声音授权范围与适用渠道",
+        "制作需求关联脚本、人物版本和素材引用",
+        "生成服务通过扩展点接入；任务记录与真实生成能力分别声明",
+        "产出经人工审核后归档，记录来源、版本和使用限制"
+      ]
+    },
+    {
+      "id": "brand-content-library",
+      "blueprintId": "dam-content-assets",
+      "title": "多品牌营销素材库",
+      "summary": "管理品牌、区域和渠道版本，避免过期或未获批素材被复用。",
+      "industries": ["消费品", "连锁零售"],
+      "adaptations": [
+        "资产按品牌、语言和区域设置标签与权限",
+        "授权记录渠道范围、有效期与替代版本",
+        "审核按品牌负责人分派",
+        "下载前检查发布状态和使用范围并保留引用记录"
+      ]
+    },
+    {
+      "id": "internal-service-knowledge",
+      "blueprintId": "cms-knowledge-publishing",
+      "title": "内部服务知识库",
+      "summary": "按员工角色和服务主题维护操作说明与常见问题。",
+      "industries": ["企业服务", "大型组织"],
+      "adaptations": [
+        "内容按服务类型和适用员工群体分类",
+        "专家负责事实审核与定期复审",
+        "读者反馈可生成修订任务",
+        "敏感操作说明按组织和角色过滤搜索结果"
+      ]
+    },
+    {
+      "id": "public-product-documentation",
+      "blueprintId": "cms-knowledge-publishing",
+      "title": "产品文档与多版本发布",
+      "summary": "面向外部读者管理产品版本、语言和发布节奏。",
+      "industries": ["软件产品", "工业设备"],
+      "adaptations": [
+        "内容同时关联产品版本与语言",
+        "发布计划与产品版本上市节奏关联",
+        "修订需检查跨版本链接和迁移说明",
+        "已发布页面提供可追踪版本及撤回记录"
+      ]
+    },
+    {
+      "id": "office-supplies-request",
+      "blueprintId": "oa-office-requests",
+      "title": "办公用品申请与领取",
+      "summary": "按照用品标准和预算完成申请、审批、发放及领取确认。",
+      "industries": ["企业办公", "教育组织"],
+      "adaptations": [
+        "服务目录改为用品类别与可申请数量",
+        "超标准或超预算申请升级审批",
+        "执行任务记录实际发放数量",
+        "库存接口未连接时只记录领用，不声称自动扣库"
+      ]
+    },
+    {
+      "id": "visitor-reception-request",
+      "blueprintId": "oa-office-requests",
+      "title": "访客与会议接待",
+      "summary": "协调来访申请、接待资源和行政执行，控制访客资料范围。",
+      "industries": ["企业办公", "园区运营"],
+      "adaptations": [
+        "申请增加来访时间、接待人及必要访客资料",
+        "资源任务包含会议室和接待安排",
+        "外部访客只查看自身邀请或回执",
+        "到访后按保留规则处理个人资料"
+      ]
+    },
+    {
+      "id": "software-release-project",
+      "blueprintId": "projects-delivery-coordination",
+      "title": "软件版本交付",
+      "summary": "将需求、开发任务、缺陷和发布验收组成版本交付记录。",
+      "industries": ["软件开发", "企业研发"],
+      "adaptations": [
+        "项目增加版本范围、缺陷和发布候选物",
+        "任务关联代码变更与构建结果引用",
+        "验收区分功能、兼容性和回滚准备",
+        "发布操作依赖实际交付接口，任务完成不等于已部署"
+      ]
+    },
+    {
+      "id": "customer-implementation-project",
+      "blueprintId": "projects-delivery-coordination",
+      "title": "客户实施交付",
+      "summary": "根据合同范围和客户里程碑组织配置、迁移、培训与验收。",
+      "industries": ["企业服务", "软件实施"],
+      "adaptations": [
+        "需求变更记录范围、成本和客户确认",
+        "交付物按里程碑向客户开放",
+        "迁移与培训分别保留结果及问题清单",
+        "最终验收保留客户确认，不用内部完成代替"
+      ]
+    },
+    {
+      "id": "distribution-order-to-cash",
+      "blueprintId": "erp-order-resource-coordination",
+      "title": "贸易分销订单协同",
+      "summary": "协调多仓库存、供应采购、发货和客户结算，集中处理交付异常。",
+      "industries": ["贸易分销", "批发"],
+      "adaptations": [
+        "订单按仓库可用量拆分供应安排",
+        "缺货时发起采购协同并回写承诺日期",
+        "履约关联出库和运输单据而不重复仓内任务",
+        "收款与信用信息从财务接口回读"
+      ]
+    },
+    {
+      "id": "engineer-to-order-coordination",
+      "blueprintId": "erp-order-resource-coordination",
+      "title": "项目型制造资源协同",
+      "summary": "围绕定制合同组织设计、长周期采购、制造与阶段结算。",
+      "industries": ["装备制造", "工程制造"],
+      "adaptations": [
+        "资源需求按合同项目和设计基线分组",
+        "设计变更触发采购及在制影响确认",
+        "长周期物料单独维护到货承诺",
+        "结算节点按里程碑核对，不用发货数量直接推断收入"
+      ]
+    },
+    {
+      "id": "employee-it-helpdesk",
+      "blueprintId": "itsm-service-restoration",
+      "title": "员工 IT 服务台",
+      "summary": "受理账号、设备和办公软件问题，提供自助及人工升级。",
+      "industries": ["企业办公", "教育组织"],
+      "adaptations": [
+        "请求按账号、设备和应用分类",
+        "身份相关操作由专门权限接口执行",
+        "高优先级服务中断触发值班升级",
+        "用户确认解决后沉淀可复用知识"
+      ]
+    },
+    {
+      "id": "production-service-incidents",
+      "blueprintId": "itsm-service-restoration",
+      "title": "生产系统事件与变更",
+      "summary": "围绕业务系统中断、恢复、根因和受控变更维护处理证据。",
+      "industries": ["软件运营", "企业IT"],
+      "adaptations": [
+        "事件关联受影响服务、依赖与业务影响",
+        "重大事件指定指挥人和更新节奏",
+        "紧急变更需记录授权、验证与回滚方案",
+        "恢复后另建问题复盘，避免恢复即视为根因解决"
+      ]
+    },
+    {
+      "id": "sales-performance-review",
+      "blueprintId": "analytics-business-review",
+      "title": "销售经营复盘",
+      "summary": "统一目标、商机、签约和回款口径，支持团队与客户维度分析。",
+      "industries": ["企业销售", "批发分销"],
+      "adaptations": [
+        "指标区分商机预测、合同签约和实际回款",
+        "组织筛选遵循销售团队数据权限",
+        "异常可下钻到商机或结算依据",
+        "行动记录责任人与复查日期，不自动改写交易数据"
+      ]
+    },
+    {
+      "id": "manufacturing-performance-review",
+      "blueprintId": "analytics-business-review",
+      "title": "工厂经营与执行分析",
+      "summary": "按班组、产线和周期分析产出、异常及交付表现。",
+      "industries": ["制造业", "加工行业"],
+      "adaptations": [
+        "指标定义班次边界、合格数量与停机口径",
+        "来源显示数据更新时间和未回传范围",
+        "异常可引用生产、质量和设备记录",
+        "改进前后使用相同口径，保留调整版本"
+      ]
+    }
+  ]
+}

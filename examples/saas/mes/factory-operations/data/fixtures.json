@@ -1,0 +1,33 @@
+{
+  "workspaceName": "示例制造协作空间",
+  "reports": [
+    {
+      "kind": "broken_needle",
+      "contractNumber": "DEMO-2026-0101",
+      "materialNumber": "NEEDLE-11-SAMPLE",
+      "station": "缝制一组 03 工位",
+      "reason": "合成场景：换线检查发现断针，已暂停作业，申请补充并登记碎片回收。",
+      "quantity": 1,
+      "assetIds": []
+    },
+    {
+      "kind": "consumable",
+      "contractNumber": "DEMO-2026-0102",
+      "materialNumber": "THREAD-WHITE-SAMPLE",
+      "station": "缝制二组 05 工位",
+      "reason": "合成场景：本班次白色线轴不足，申请按合同补料。",
+      "quantity": 6,
+      "assetIds": []
+    }
+  ],
+  "visits": [
+    {
+      "customer": "示例青禾服装",
+      "visitedAt": "2026-10-14T01:30:00.000Z",
+      "summary": "合成场景：沟通冬季样衣补单计划，对方希望先确认面料和交付批次。",
+      "issues": "第二批面料色卡仍待确认。",
+      "nextStep": "整理两套色卡方案并安排样衣复核。",
+      "followUpDate": "2026-10-16"
+    }
+  ]
+}

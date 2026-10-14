@@ -1,0 +1,97 @@
+{
+  "version": 3,
+  "id": "factory-operations",
+  "title": "工厂运营工作台",
+  "summary": "通过照片上报、审批配送与断针回收追溯工厂申领，记录销售拜访与跟进，使用可选择的数据和资产服务。",
+  "domain": "mes",
+  "tags": ["crm", "factory", "approvals", "asset-management", "multi-provider"],
+  "status": "integrated",
+  "source": {
+    "date": "2026-10-14",
+    "kind": "business-discussion",
+    "summary": "依据已读取的业务听记及后续数据源可替换要求抽象整理；公开范围仅含业务规格、源码和合成验证输入，不保留私人链接、原始对话、真实客户或账号信息。完整客户验收尚未完成。",
+    "customerConfirmed": false
+  },
+  "dataMode": "synthetic",
+  "deliverables": {
+    "overview": "README.md",
+    "requirements": "requirements.md",
+    "workflows": "workflows.md",
+    "dataModel": "data-model.md",
+    "integrations": "integrations.md",
+    "acceptance": "acceptance.md",
+    "evidence": "evidence/verification.md"
+  },
+  "runtime": {
+    "mode": "application",
+    "command": "npm run factory:dev",
+    "entry": "workbench/dist/index.html",
+    "reset": "业务记录保存在所选服务，刷新不重置。所有者可预览并确认同工作区整包恢复；资产文件和成员不随包删除。恢复部署默认配置只清除当前浏览器连接覆盖。"
+  },
+  "capabilities": [
+    {
+      "id": "factory-workflow",
+      "title": "工厂申领与断针追溯",
+      "mode": "local",
+      "description": "上报表单、审批配送、回收确认、完结与时间线界面；数据写入由配置的真实服务执行，没有本地模拟成功。"
+    },
+    {
+      "id": "sales-visits",
+      "title": "销售拜访记录",
+      "mode": "local",
+      "description": "客户拜访、沟通纪要、问题、下一步与跟进日期表单及查询。"
+    },
+    {
+      "id": "provider-contracts",
+      "title": "可替换身份、业务与资产端口",
+      "mode": "local",
+      "description": "独立的 IdentityProvider、OperationsRepository、AssetStore；Supabase 和 HTTP 组合可配置，端口可另行实现与组合。"
+    },
+    {
+      "id": "supabase-deployment",
+      "title": "Supabase 身份、数据库与私有资产",
+      "mode": "connected",
+      "description": "在专用 QA 项目完成真实登录、数据库写入与重登回读、工作区权限、私有资产字节回读、断针回收闭环与拜访验证；不随仓库提供账号或项目配置。"
+    },
+    {
+      "id": "enterprise-data-platform",
+      "title": "MySQL 与企业资产平台",
+      "mode": "unavailable",
+      "description": "提供标准 HTTP 客户端与接口约定；企业后端服务需单独实现和联调，未提供 MySQL 直连。"
+    },
+    {
+      "id": "ai-and-dingtalk",
+      "title": "AI 分析与钉钉通知",
+      "mode": "unavailable",
+      "description": "自动语音/图片分析、AI 总结和钉钉通知没有接入，不以模拟数据表示已执行。"
+    },
+    {
+      "id": "ledger-exchange",
+      "title": "同工作区整包交换",
+      "mode": "connected",
+      "description": "个人试用 Supabase 已部署交换迁移并通过 8 组云端回滚事务与权限检查，所有者私有试用站已发布。首次真实用户注册后的云端 UI 验收待完成；资产正文留原平台，其他提供方需独立接入。"
+    },
+    {
+      "id": "mock-ledger-recognition",
+      "title": "拍照台账模拟核对",
+      "mode": "mock",
+      "description": "上传原图后生成固定规则合成草稿，用户对照编辑与核对后进入整包预览；不读取图片内容，人工确认保留 mock 和合成来源。"
+    },
+    {
+      "id": "dataset-provenance",
+      "title": "工作区与记录来源标识",
+      "mode": "local",
+      "description": "显示当前数据集来源、存储范围、版本和记录识别来源；成功发布后重新读取，失败或未支持时不猜测来源。"
+    }
+  ],
+  "serviceModel": "saas",
+  "caseKind": "reference-implementation",
+  "blueprintId": "mes-production-operations",
+  "variantId": "garment-workshop-consumables",
+  "evidence": [
+    {
+      "path": "evidence/verification.md",
+      "title": "专用 QA 环境的真实服务集成与权限验证记录"
+    }
+  ]
+}

@@ -2,10 +2,10 @@
   "name": "@bytefolk/workbench-examples",
   "version": "0.1.0",
   "private": true,
-  "description": "SaaS and industry workbench scenarios, reusable case specifications, and interactive prototypes.",
+  "description": "SaaS, PaaS and IaaS workbench scenarios, reusable case specifications, and runnable examples.",
   "type": "module",
   "workspaces": [
-    "examples/*/*/workbench"
+    "examples/*/*/*/workbench"
   ],
   "engines": {
     "node": ">=22.12"
@@ -16,13 +16,17 @@
     "validate": "node scripts/validate.mjs",
     "test": "node --test tests/*.test.mjs",
     "build": "npm run build --workspaces --if-present",
-    "test:cases": "npm run test --workspaces --if-present && npm run test:poc --workspaces --if-present",
-    "test:e2e": "npm run test:e2e --workspaces --if-present",
+    "test:cases": "npm run test --workspaces --if-present && npm run test:poc --workspaces --if-present && npm run test:sql --workspaces --if-present",
+    "test:catalog": "playwright test --config catalog/playwright.config.ts",
+    "test:e2e": "npm run test:catalog && npm run test:e2e --workspaces --if-present",
     "persona:dev": "npm run dev --workspace persona-studio-demo",
+    "factory:dev": "npm run dev --workspace factory-operations-workbench",
     "check": "npm run format:check && npm run build && npm run validate && npm test && npm run test:cases",
-    "demo": "npm run build && node scripts/serve.mjs"
+    "demo": "npm run build && node scripts/serve.mjs",
+    "muse:dev": "npm run dev --workspace muse-digital-studio"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.0",
     "ajv": "^8.17.1",
     "prettier": "3.6.2"
   },

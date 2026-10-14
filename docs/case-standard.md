@@ -1,6 +1,14 @@
-# 工作台案例规范 v1
+# 工作台案例规范 v3
 
-本规范用于记录可复用的业务案例。案例标识与本仓库 schemas 一起演进，不替代产品或 SaaS 的接口契约。
+本规范用于记录可复用的工作台案例。案例标识与本仓库 schemas 一起演进，不替代业务产品、平台或基础设施的接口契约。
+
+## 分层与目录
+
+分类按“服务模型 → 业务族 → 领域”组织，复用关系按“标准主干 → 场景变体 → 案例实现”组织。代码目录保留 `examples/<serviceModel>/<domain>/<case-id>/`。`serviceModel` 从 [服务模型字典](../catalog/service-models.json) 选择 `saas`、`paas` 或 `iaas`，`domain` 必须属于该服务模型下的 [领域字典](../catalog/domains.json)，其 `groupId` 引用同一服务模型的业务族。一个案例只有一个主路径，跨领域使用 tags 发现，不复制案例。
+
+服务模型描述工作台面向的目标能力：SaaS 业务应用、PaaS 开发与运行平台、IaaS 基础设施资源。这是案例库的分类维度，不表示仓库代码已作为托管服务交付。部署在本机、自托管或公共云，以及使用哪种数据库、身份系统和资产存储，均独立记录在 `integrations.md`。
+
+例如工厂运营工作台归 `saas/mes/factory-operations`，销售拜访通过 `crm` 标签关联；使用 Supabase 后端不会将该业务工作台改归 PaaS。详细分类和边界见 [领域分类](domains.md)。没有真实案例的分类只保留字典条目，不创建空案例目录。
 
 ## 最小交付
 
@@ -20,7 +28,18 @@
 
 ## 元信息
 
-`case.json` 按 `schemas/case.schema.json` 校验，包含稳定 id、中文标题、summary、主领域、tags、status、来源、数据模式、交付物路径、运行声明与逐项能力声明。catalog 必须与案例 manifest 完全一致。ID 全仓库唯一，文件路径使用仓库内相对路径。
+`case.json` 的 `version` 为 `3`，按 `schemas/case.schema.json` 校验，包含稳定 id、中文标题、summary、serviceModel、主领域 domain、blueprintId、variantId、caseKind、tags、status、来源、数据模式、交付物路径、运行声明、逐项能力声明与 evidence。catalog 中的 id、标题、summary、serviceModel、domain、blueprintId、variantId、caseKind、tags 和 status 必须与案例 manifest 完全一致；path 必须为 `examples/<serviceModel>/<domain>/<id>`。案例 ID 全仓库唯一。
+
+`blueprintId` 引用标准主干，其服务模型和领域必须与案例一致；`variantId` 引用该主干下的场景变体。主干记录稳定的角色、业务对象、流程、页面与扩展点；变体记录行业和差异，不重复复制代码。参考设计可以没有实现，不计入案例数量。完整关系见 [案例资产模型](case-assets.md)。
+
+`caseKind` 与交付状态独立：
+
+- `reference-implementation`：用于说明、研究、演示或技术接入验证的参考实现。
+- `project-case`：来自真实项目，至少提供一条可公开的脱敏项目证据。收录者核对项目来源、发布范围和证据真实性；技术验证记录本身不证明客户交付。
+
+`evidence` 是 `{title, path}` 数组，path 相对于案例目录；项目案例至少一条，路径必须落在案例目录内，文件必须真实存在。自动校验不代替来源和授权审查。现有 Persona Studio、MUSE 和工厂运营工作台均归参考实现，分别保留模拟流程与真实服务接入的验证材料。
+
+`deliverables` 与 `runtime.entry` 使用相对于案例目录的路径，必须落在该案例目录内。分类变更应同步移动目录、修改 catalog 和 manifest、修复文档链接与测试路径；npm workspace 目录约定为 `examples/*/*/*/workbench`。从 v2 迁移时为现有案例补充主干、变体、类型和证据关联，不推断此前没有证明的客户交付。
 
 能力 mode：
 
@@ -45,8 +64,10 @@
 
 ## 演示与验证
 
+台账整包交换可参考 [台账交换契约](ledger-exchange.md)。通用 schema 只校验结构；工厂案例已提供同工作区恢复、原子提交适配和明确标注的拍照模拟草稿，具体测试及未验证的部署范围见案例证据。其他案例不能据此声明已支持导入或 OCR。数据一致性与来源标注的检查示例见 [factory-smart-ops 复核](factory-smart-ops-review.md)。
+
 - 运行步骤从干净检出开始，明确依赖、启动 URL、外部调用与重置方法。
 - 演示数据可重复加载，使用虚构人物、商品与素材，不依赖私人账号。
 - 验收覆盖主流程、空结果、失败状态和关键业务约束。实现了高影响行为才增加针对性自动验证。
 - 原型在业务页面直接显示用户需要知道的运行限制，不把内部架构术语塞进业务流程。
-- `npm run check` 校验 schemas、索引、路径、分类、数据和业务约束。它不能证明模型质量、SaaS 权限、媒体授权的法律充分性或客户接受程度。
+- `npm run check` 校验 schemas、索引、路径、分类、资产引用、证据文件、数据和业务约束；交互修改还需运行 `npm run test:e2e`。这些检查不能证明模型质量、真实服务权限、证据来源真实性或客户接受程度。

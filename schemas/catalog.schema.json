@@ -4,7 +4,9 @@
   "additionalProperties": false,
   "required": ["version", "cases"],
   "properties": {
-    "version": { "const": 1 },
+    "version": {
+      "const": 3
+    },
     "cases": {
       "type": "array",
       "items": {
@@ -17,17 +19,36 @@
           "domain",
           "tags",
           "status",
-          "path"
+          "path",
+          "serviceModel",
+          "caseKind",
+          "blueprintId",
+          "variantId"
         ],
         "properties": {
-          "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
-          "title": { "type": "string", "minLength": 1 },
-          "summary": { "type": "string", "minLength": 1 },
-          "domain": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "domain": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
           "tags": {
             "type": "array",
             "uniqueItems": true,
-            "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]*$"
+            }
           },
           "status": {
             "enum": [
@@ -40,7 +61,21 @@
           },
           "path": {
             "type": "string",
-            "pattern": "^examples/[a-z][a-z0-9-]*/[a-z][a-z0-9-]*$"
+            "pattern": "^examples/(saas|paas|iaas)/[a-z][a-z0-9-]*/[a-z][a-z0-9-]*$"
+          },
+          "serviceModel": {
+            "enum": ["saas", "paas", "iaas"]
+          },
+          "caseKind": {
+            "enum": ["reference-implementation", "project-case"]
+          },
+          "blueprintId": {
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "type": "string"
+          },
+          "variantId": {
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "type": "string"
           }
         }
       }

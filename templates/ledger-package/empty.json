@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "packageKind": "template",
+  "packageId": "empty-template",
+  "datasetContract": {
+    "id": "unassigned",
+    "version": 1
+  },
+  "dataRevision": null,
+  "metadata": {
+    "contentOrigin": "user-imported",
+    "storage": "local"
+  },
+  "tables": {},
+  "assets": [],
+  "exportScope": null
+}
