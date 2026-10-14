@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "id": "brand-digital-human-studio",
+  "title": "MUSE 缪思 · 品牌数字人技术验证工作台",
+  "summary": "用虚构品牌素材演示资产推荐、创作、任务、审核和成品复用，并提供独立运行的Higgsfield人物参考与视频API适配代码。",
+  "domain": "dam",
+  "tags": ["marketing", "digital-human", "video-generation", "higgsfield"],
+  "status": "prototype",
+  "source": {
+    "date": "2026-10-14",
+    "kind": "business-discussion",
+    "summary": "从品牌内容制作的业务讨论抽象为公开技术验证案例，仅收录虚构人物、商品、原创合成图和本地示意样片。私人消息、真人素材、报价及账号记录不发布；真实生成和客户质量验收尚未完成。",
+    "customerConfirmed": false
+  },
+  "dataMode": "synthetic",
+  "deliverables": {
+    "overview": "README.md",
+    "requirements": "requirements.md",
+    "workflows": "workflows.md",
+    "dataModel": "data-model.md",
+    "integrations": "integrations.md",
+    "acceptance": "acceptance.md",
+    "evidence": "evidence/verification.md"
+  },
+  "runtime": {
+    "mode": "application",
+    "command": "npm run demo",
+    "entry": "workbench/dist/index.html",
+    "reset": "侧栏重置演示数据仅清当前案例浏览器状态，不取消外部平台任务或删除Soul ID。"
+  },
+  "capabilities": [
+    {
+      "id": "asset-library",
+      "title": "图片资产与候选确认",
+      "mode": "local",
+      "description": "分类、检索、收藏、单张图片上传和规则候选确认；当前浏览器存储，不是企业共享库。"
+    },
+    {
+      "id": "generation-workflow",
+      "title": "模拟任务与示意媒体",
+      "mode": "mock",
+      "description": "模拟生成约22秒完成，输出内置6秒无声动态样片，没有AI表演或声音克隆。"
+    },
+    {
+      "id": "outputs",
+      "title": "预览审核与配置复用",
+      "mode": "local",
+      "description": "媒体预览下载、审核标记、收藏、配置JSON导出和再次创作；不是永久文件归档。"
+    },
+    {
+      "id": "higgsfield-adapter",
+      "title": "Higgsfield真实接口适配代码",
+      "mode": "unavailable",
+      "description": "独立运行可配置本机代理调用Soul ID v2、Soul 2、Seedance 2.0和Kling O3；只有模拟响应软件测试，未取得真实账号回执，不能标connected。目录入口不调用代理。"
+    },
+    {
+      "id": "qwen-adapter",
+      "title": "Qwen语义解析适配代码",
+      "mode": "unavailable",
+      "description": "独立运行可配置Qwen的JSON解析；未验证真实账号，目录默认免费规则检索。"
+    },
+    {
+      "id": "voice-lipsync",
+      "title": "克隆声音与口型",
+      "mode": "unavailable",
+      "description": "声音档案仅示意关联，无声音克隆、TTS或独立音画同步。"
+    },
+    {
+      "id": "full-body-and-products",
+      "title": "全身动作与商品细节",
+      "mode": "unavailable",
+      "description": "接口代码提供验证路径，无客户样片合格证据；零漂移、商品零误差和私有模型导出不承诺。"
+    }
+  ]
+}
