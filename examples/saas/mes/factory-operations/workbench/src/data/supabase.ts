@@ -399,14 +399,15 @@ export function createSupabaseServices(
       },
       async createReport(id, input) {
         validateReport(input);
+        const assets = await listAssets(id);
         if (input.kind === "broken_needle")
-          validateReportAttachments(input, await listAssets(id));
-        return loadReport(
-          await rpc<ReportRow>("fo_create_report", {
-            p_workspace: id,
-            p_input: input,
-          }),
-        );
+          validateReportAttachments(input, assets);
+        const row = await rpc<ReportRow>("fo_create_report", {
+          p_workspace: id,
+          p_input: input,
+        });
+        // 保存成功后不再追加可能失败的展示查询，避免把已落库申领误报为提交失败。
+        return reportFromRow(row, assets);
       },
       async transitionReport(input) {
         return loadReport(
