@@ -10,14 +10,19 @@
     "dev:frontend": "vite --host 127.0.0.1 --port 4318 --strictPort",
     "api": "node server/index.mjs",
     "test": "node --test server/*.test.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "xyq:install": "node scripts/xyq.mjs install",
+    "xyq:login": "node scripts/xyq.mjs login",
+    "xyq:status": "node scripts/xyq.mjs status",
+    "xyq:logout": "node scripts/xyq.mjs logout"
   },
   "dependencies": {
     "dotenv": "^18.0.7",
     "express": "^5.3.0",
     "lucide-react": "^0.468.0",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "music-metadata": "12.2.0"
   },
   "devDependencies": {
     "@playwright/test": "1.64.0",

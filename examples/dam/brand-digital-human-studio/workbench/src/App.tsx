@@ -9,7 +9,12 @@ import { Outputs, Preview } from "./pages/Outputs";
 import { useStudio, isActive } from "./store";
 import { createSeed, emptyDraft } from "./data";
 import type { Asset, Page, Task } from "./types";
-import { api, type ProviderConfig, type RemoteGeneration } from "./api";
+import {
+  api,
+  providerApiRoot,
+  type ProviderConfig,
+  type RemoteGeneration,
+} from "./api";
 import "./integration.css";
 const pages = ["assets", "create", "tasks", "outputs"];
 const route = (): Page =>
@@ -60,7 +65,15 @@ export default function App() {
   }
   async function cancel(id: string) {
     const task = state.tasks.find((t) => t.id === id);
-    if (task?.provider === "higgsfield") {
+    if (task?.provider) {
+      if (
+        task.provider === "xiaoyunque" ||
+        task.provider === "wan" ||
+        task.provider === "speech"
+      ) {
+        setApiError("此平台接入暂不支持取消，请在平台核对任务。");
+        return;
+      }
       if (!task.remoteRequestId) return;
       try {
         await api(`/api/requests/${task.remoteRequestId}/cancel`, {});
@@ -79,7 +92,7 @@ export default function App() {
   }
   function retry(id: string) {
     const task = state.tasks.find((t) => t.id === id);
-    if (task?.provider === "higgsfield") {
+    if (task?.provider) {
       reuse(task);
       setToast("已带入原配置，请确认后重新提交真实生成");
       return;
@@ -133,6 +146,7 @@ export default function App() {
             draft.productId,
             draft.sceneId,
             draft.voiceId,
+            draft.wanFrameAssetId,
           ].includes(a.id),
         )
         .map((a) => ({ ...a })),
@@ -140,30 +154,46 @@ export default function App() {
       favorite: false,
     };
     try {
-      if (draft.mode === "higgsfield") {
-        if (!config?.configured || !config.enabled)
+      if (
+        draft.mode === "higgsfield" ||
+        draft.mode === "xiaoyunque" ||
+        draft.mode === "wan" ||
+        draft.mode === "speech"
+      ) {
+        if (
+          draft.mode === "higgsfield" &&
+          (!config?.configured || !config.enabled)
+        )
           throw new Error(
             "真实 API 未配置或未开启，请先按 .env.example 配置本地代理。",
           );
         const payload = JSON.stringify({ draft, assets: task.assets });
         if (submission.current?.payload !== payload)
           submission.current = { id: crypto.randomUUID(), payload };
-        const remote = await api<RemoteGeneration>("/api/videos", {
-          draft,
-          assets: task.assets,
-          submissionId: submission.current.id,
-        });
-        task.provider = "higgsfield";
+        const remote = await api<RemoteGeneration>(
+          `${providerApiRoot(draft.mode)}/videos`,
+          {
+            draft,
+            assets: task.assets,
+            submissionId: submission.current.id,
+          },
+        );
+        task.provider = draft.mode;
         task.remoteRequestId = remote.requestId;
-        task.providerStatus = remote.status;
+        task.providerStatus = remote.providerStatus || remote.status;
         task.canCancel = remote.canCancel;
         task.resultUrl = remote.video;
+        task.error = remote.error;
+        if (remote.duration !== undefined)
+          task.draft.duration = remote.duration;
         task.status =
           remote.status === "in_progress"
             ? "generating"
             : remote.status === "completed"
               ? "completed"
-              : "queued";
+              : remote.status === "failed"
+                ? "failed"
+                : "queued";
       }
       if (
         !update((s) => ({
@@ -176,9 +206,15 @@ export default function App() {
       navigate("tasks");
       submission.current = null;
       setToast(
-        task.provider === "higgsfield"
-          ? "Higgsfield 已接受任务，正在查询真实状态"
-          : "模拟生成已提交，完成后自动进入成品库",
+        task.provider === "speech"
+          ? "对口型任务已提交，完成后保存到成品库"
+          : task.provider === "wan"
+            ? "万相任务已提交，真实成片将保存回工作台"
+            : task.provider === "xiaoyunque"
+              ? "小云雀任务已提交，结果将下载回工作台成品库"
+              : task.provider === "higgsfield"
+                ? "Higgsfield 已接受任务，正在查询真实状态"
+                : "模拟生成已提交，完成后自动进入成品库",
       );
     } catch (error) {
       setApiError(
@@ -261,6 +297,22 @@ export default function App() {
               )
             }
             onSubmit={submit}
+            onUpdateAsset={(id, patch) =>
+              update((s) => ({
+                ...s,
+                assets: s.assets.map((a) =>
+                  a.id === id ? { ...a, ...patch } : a,
+                ),
+              }))
+            }
+            onAddAsset={(asset) =>
+              update((s) => ({
+                ...s,
+                assets: s.assets.some((a) => a.id === asset.id)
+                  ? s.assets
+                  : [asset, ...s.assets],
+              }))
+            }
           />
         )}
         {page === "tasks" && (
@@ -305,7 +357,7 @@ export default function App() {
             <p>
               这是品牌数字人技术验证
               Demo。默认可用模拟模式，也支持通过本地接口代理连接 Higgsfield
-              与阿里云 Qwen。
+              、阿里云万相、小云雀与阿里云 Qwen。
             </p>
             <ol>
               <li>
@@ -319,7 +371,8 @@ export default function App() {
               <li>
                 <b>跟踪任务</b>
                 <span>
-                  模拟任务约 22 秒完成；真实任务显示供应商状态，仅排队时可取消。
+                  模拟任务约 22 秒完成；真实任务查询供应商结果。Higgsfield
+                  仅排队可取消，万相与小云雀暂不支持取消。
                 </span>
               </li>
               <li>
@@ -330,7 +383,7 @@ export default function App() {
             <p className="helper">
               未配置密钥时使用本地规则和内置样片。已配置的真实生成按账号计费。Soul
               ID
-              仅用于平台人物参考复用，声音克隆仍待接入。当前资产库保存在浏览器中。
+              仅用于平台人物参考复用；声音复刻、新台词语音和对口型在「声音复刻与对口型」入口操作，分别由你点击生成。当前资产库保存在浏览器中。
             </p>
             <button className="button full" onClick={() => setHelp(false)}>
               开始探索

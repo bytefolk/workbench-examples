@@ -15,6 +15,11 @@ export interface Asset {
   soulId?: string;
   soulStatus?: string;
   referenceImages?: string[];
+  clonedVoiceId?: string;
+  clonedVoiceModel?: string;
+  voiceStatus?: string;
+  audioUrl?: string;
+  audioDuration?: number;
 }
 export interface Shot {
   id: string;
@@ -33,9 +38,14 @@ export interface Draft {
   duration: number;
   mood: string;
   shots: Shot[];
-  mode?: "demo" | "higgsfield";
+  mode?: "demo" | "higgsfield" | "xiaoyunque" | "wan" | "speech";
+  speechText?: string;
+  speechAudioId?: string;
+  wanFrameAssetId?: string;
+  wanShotType?: "single" | "multi";
+  xyqResolution?: string;
   modelId?: string;
-  resolution?: "720p" | "1080p";
+  resolution?: "480p" | "720p" | "1080p";
   generateAudio?: boolean;
 }
 export type TaskStatus =
@@ -55,7 +65,7 @@ export interface Task {
   error?: string;
   approved: boolean;
   favorite: boolean;
-  provider?: "higgsfield";
+  provider?: "higgsfield" | "xiaoyunque" | "wan" | "speech";
   remoteRequestId?: string;
   resultUrl?: string;
   providerStatus?: string;

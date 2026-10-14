@@ -18,6 +18,9 @@ import { kindLabels } from "../types";
 import { makeShots } from "../data";
 import { AssetImage, PageHeader } from "../components/UI";
 import { MatchPanel } from "../components/MatchPanel";
+import { XyqPanel } from "../components/XyqPanel";
+import { WanPanel } from "../components/WanPanel";
+import { SpeechStudio } from "../components/SpeechStudio";
 import { api, matchAssets, rulesFallback } from "../api";
 import type { MatchResult, ProviderConfig } from "../api";
 interface Props {
@@ -28,6 +31,8 @@ interface Props {
   onSave: () => void;
   config: ProviderConfig | null;
   submitting: boolean;
+  onUpdateAsset: (id: string, patch: Partial<Asset>) => void;
+  onAddAsset: (asset: Asset) => void;
 }
 export function Create({
   draft,
@@ -37,6 +42,8 @@ export function Create({
   onSave,
   config,
   submitting,
+  onUpdateAsset,
+  onAddAsset,
 }: Props) {
   const [step, setStep] = useState(1);
   const [error, setError] = useState("");
@@ -50,6 +57,11 @@ export function Create({
   const matchVersion = useRef(0);
   const estimateVersion = useRef(0);
   const realMode = draft.mode === "higgsfield";
+  const xyqMode = draft.mode === "xiaoyunque";
+  const wanMode = draft.mode === "wan";
+  const speechMode = draft.mode === "speech";
+  const [wanReady, setWanReady] = useState(false);
+  const [xyqReady, setXyqReady] = useState(false);
   const realAvailable = !!config?.configured && !!config?.enabled;
   const models = config?.models?.length
     ? config.models
@@ -135,11 +147,37 @@ export function Create({
     }
     patch(changes);
   }
-  function chooseMode(mode: "demo" | "higgsfield") {
+  function chooseMode(mode: Draft["mode"]) {
+    if (mode === "speech") {
+      patch({
+        mode,
+        modelId: "wan2.2-s2v",
+        resolution: "480p",
+        voiceId: "",
+        speechAudioId: undefined,
+        speechText:
+          draft.speechText || "这顶帽子，让普通的一天也有自己的风格。",
+        title: draft.title || "品牌人物 · 新台词口播",
+        duration: 5,
+      });
+      return;
+    }
+    if (mode === "wan") {
+      patch({
+        mode,
+        modelId: "wan2.6-i2v-flash",
+        duration: 5,
+        resolution: "720p",
+        generateAudio: false,
+        wanFrameAssetId: draft.characterId,
+        wanShotType: "single",
+      });
+      return;
+    }
     patch({
       mode,
-      modelId: model.id,
-      resolution: draft.resolution || "720p",
+      modelId: mode === "xiaoyunque" ? "" : model.id,
+      resolution: draft.resolution === "1080p" ? "1080p" : "720p",
       duration:
         mode === "higgsfield"
           ? Math.min(
@@ -212,22 +250,29 @@ export function Create({
           保存草稿
         </button>
       </PageHeader>
-      <div className="creation-steps">
-        <button
-          className={step === 1 ? "active" : "done"}
-          onClick={() => setStep(1)}
-        >
-          <span>{step > 1 ? <Check size={14} /> : 1}</span>创意与资产
-        </button>
-        <ChevronRight size={15} />
-        <button className={step === 2 ? "active" : ""} onClick={next}>
-          <span>2</span>脚本与分镜
-        </button>
-        <ChevronRight size={15} />
-        <div>
-          <span>3</span>生成与成片
+      {!speechMode && (
+        <div className="creation-steps">
+          <button
+            className={step === 1 ? "active" : "done"}
+            onClick={() => setStep(1)}
+          >
+            <span>{step > 1 ? <Check size={14} /> : 1}</span>创意与资产
+          </button>
+          <ChevronRight size={15} />
+          <button className={step === 2 ? "active" : ""} onClick={next}>
+            <span>2</span>脚本与分镜
+          </button>
+          <ChevronRight size={15} />
+          <div>
+            <span>3</span>生成与成片
+          </div>
         </div>
-      </div>
+      )}
+      {config?.catalogOnly && (
+        <p className="inline-note">
+          此目录入口仅运行免费模拟。真实验证请按案例说明单独启动工作台和本机代理。
+        </p>
+      )}
       <section className="provider-choice" aria-label="生成模式">
         <div className="integration-heading">
           <div>
@@ -242,12 +287,22 @@ export function Create({
         </div>
         <div className="mode-options" role="group" aria-label="选择生成模式">
           <button
-            className={!realMode ? "active" : ""}
-            aria-pressed={!realMode}
+            className={
+              !realMode && !xyqMode && !wanMode && !speechMode ? "active" : ""
+            }
+            aria-pressed={!realMode && !xyqMode && !wanMode && !speechMode}
             onClick={() => chooseMode("demo")}
           >
             <strong>模拟流程</strong>
             <span>免费 · 内置样片 · 验证操作流程</span>
+          </button>
+          <button
+            className={wanMode ? "active" : ""}
+            aria-pressed={wanMode}
+            onClick={() => chooseMode("wan")}
+          >
+            <strong>阿里云万相真实 API</strong>
+            <span>页面配置 Key · 首帧生视频 · 成片回到工作台</span>
           </button>
           <button
             className={realMode ? "active" : ""}
@@ -257,431 +312,503 @@ export function Create({
             <strong>Higgsfield 真实 API</strong>
             <span>按调用计费 · 参考图生成短视频</span>
           </button>
+          <button
+            className={xyqMode ? "active" : ""}
+            aria-pressed={xyqMode}
+            onClick={() => chooseMode("xiaoyunque")}
+          >
+            <strong>小云雀真实生成</strong>
+            <span>官方授权 · 消耗账号积分 · 成片回到工作台</span>
+          </button>
+          <button
+            className={speechMode ? "active" : ""}
+            aria-pressed={speechMode}
+            onClick={() => chooseMode("speech")}
+          >
+            <strong>声音复刻与对口型</strong>
+            <span>上传录音 · 品牌声线 · 新台词口播</span>
+          </button>
         </div>
+        {wanMode && (
+          <WanPanel
+            draft={draft}
+            assets={assets}
+            onChange={patch}
+            onReady={setWanReady}
+          />
+        )}
+        {xyqMode && (
+          <XyqPanel draft={draft} onChange={patch} onReady={setXyqReady} />
+        )}
         {realMode && (
           <p className="helper provider-note">
-            {config?.catalogOnly
-              ? "此目录入口仅运行免费模拟。真实验证请按案例说明单独启动工作台和本机代理。"
-              : realAvailable
-                ? "提交将上传所选人物、商品和场景参考图，并产生平台调用费用。实际效果需要样片验证。"
-                : "可查看参数与能力边界。运行服务并在 .env 配置 HF_API_KEY、HF_ENABLE_REAL=true 后，才能提交真实生成；密钥由服务端保管。"}
+            {realAvailable
+              ? "提交将上传所选人物、商品和场景参考图，并产生平台调用费用。实际效果需要样片验证。"
+              : "可查看参数与能力边界。运行服务并在 .env 配置 HF_API_KEY、HF_ENABLE_REAL=true 后，才能提交真实生成；密钥由服务端保管。"}
           </p>
         )}
       </section>
-      <div className="creation-layout">
-        <section className="creation-form">
-          {step === 1 ? (
-            <>
-              <div className="section-heading">
-                <h2>这一次，想讲什么故事？</h2>
-                <span>01 / 创意</span>
-              </div>
-              <label className="field">
-                创作名称
-                <input
-                  value={draft.title}
-                  onChange={(e) => patch({ title: e.target.value })}
-                  maxLength={60}
-                  placeholder="例如：云朵羊毛帽 · 秋日庭院"
-                />
-              </label>
-              <label className="field">
-                创作需求
-                <textarea
-                  value={draft.prompt}
-                  onChange={(e) => {
-                    patch({ prompt: e.target.value, shots: [] });
-                    matchVersion.current += 1;
-                    setMatchResult(null);
-                    setMatching(false);
-                  }}
-                  maxLength={1200}
-                  rows={5}
-                  placeholder="描述人物、单品、场景和想表达的情绪。比如：让林知夏戴着 H001 羊毛帽，在秋日庭院自然地介绍产品…"
-                />
-                <span className="text-counter">
-                  {draft.prompt.length} / 1200
-                </span>
-              </label>
-              <div className="prompt-actions">
-                <button
-                  className="text-button"
-                  onClick={() => {
-                    matchVersion.current += 1;
-                    setMatchResult(null);
-                    setMatching(false);
-                    patch({
-                      title: "秋日，自有风格",
-                      prompt:
-                        "让林知夏戴着 H001 云朵羊毛帽，在秋日庭院温柔地介绍产品，包含自然走动和转身。镜头克制，光线柔和，体现成熟而从容的生活态度。",
-                      shots: [],
-                    });
-                  }}
-                >
-                  <Plus size={14} />
-                  填入示例灵感
-                </button>
-                <button
-                  className="button secondary compact"
-                  disabled={!draft.prompt.trim() || matching}
-                  onClick={match}
-                >
-                  {matching ? (
-                    <LoaderCircle size={15} className="spinning" />
-                  ) : (
-                    <WandSparkles size={15} />
-                  )}
-                  {matching ? "解析与检索中…" : "推荐品牌资产"}
-                </button>
-              </div>
-              {matchResult && (
-                <MatchPanel
-                  result={matchResult}
-                  assets={assets}
-                  onApply={applyCandidates}
-                  onClose={() => setMatchResult(null)}
-                />
-              )}
-              <div className="section-heading divided">
-                <h2>选择这段故事的主角</h2>
-                <span>02 / 资产</span>
-              </div>
-              <div className="field-grid">
-                {picker("character", "characterId")}
-                {picker("product", "productId")}
-                {picker("scene", "sceneId")}
-                {picker("voice", "voiceId")}
-              </div>
-              <p className="helper">
-                声音档案仅关联素材；本次未接入声线克隆或口型同步服务。人物参考图也不等于自有模型文件。
-              </p>
-              <div className="section-heading divided">
-                <h2>定义画面的节奏</h2>
-                <SlidersHorizontal size={17} />
-              </div>
-              <div className="field-grid">
-                <div className="field">
-                  <span>画面比例</span>
-                  <div className="segmented" role="group" aria-label="画面比例">
-                    {(["16:9", "9:16"] as const).map((r) => (
-                      <button
-                        key={r}
-                        className={draft.ratio === r ? "active" : ""}
-                        onClick={() => patch({ ratio: r })}
-                        aria-pressed={draft.ratio === r}
-                      >
-                        <span
-                          className={`ratio-icon ${r === "9:16" ? "vertical" : ""}`}
-                        />
-                        {r === "16:9" ? "横屏 16:9" : "竖屏 9:16"}
-                      </button>
-                    ))}
-                  </div>
+      {speechMode && (
+        <SpeechStudio
+          draft={draft}
+          assets={assets}
+          onChange={patch}
+          onUpdateAsset={onUpdateAsset}
+          onAddAsset={onAddAsset}
+          onSubmit={onSubmit}
+          submitting={submitting}
+        />
+      )}
+      {!speechMode && (
+        <div className="creation-layout">
+          <section className="creation-form">
+            {step === 1 ? (
+              <>
+                <div className="section-heading">
+                  <h2>这一次，想讲什么故事？</h2>
+                  <span>01 / 创意</span>
                 </div>
                 <label className="field">
-                  目标时长
-                  <select
-                    value={draft.duration}
-                    onChange={(e) =>
-                      patch({ duration: Number(e.target.value) })
-                    }
+                  创作名称
+                  <input
+                    value={draft.title}
+                    onChange={(e) => patch({ title: e.target.value })}
+                    maxLength={60}
+                    placeholder="例如：云朵羊毛帽 · 秋日庭院"
+                  />
+                </label>
+                <label className="field">
+                  创作需求
+                  <textarea
+                    value={draft.prompt}
+                    onChange={(e) => {
+                      patch({ prompt: e.target.value, shots: [] });
+                      matchVersion.current += 1;
+                      setMatchResult(null);
+                      setMatching(false);
+                    }}
+                    maxLength={1200}
+                    rows={5}
+                    placeholder="描述人物、单品、场景和想表达的情绪。比如：让林知夏戴着 H001 羊毛帽，在秋日庭院自然地介绍产品…"
+                  />
+                  <span className="text-counter">
+                    {draft.prompt.length} / 1200
+                  </span>
+                </label>
+                <div className="prompt-actions">
+                  <button
+                    className="text-button"
+                    onClick={() => {
+                      matchVersion.current += 1;
+                      setMatchResult(null);
+                      setMatching(false);
+                      patch({
+                        title: "秋日，自有风格",
+                        prompt:
+                          "让林知夏戴着 H001 云朵羊毛帽，在秋日庭院温柔地介绍产品，包含自然走动和转身。镜头克制，光线柔和，体现成熟而从容的生活态度。",
+                        shots: [],
+                      });
+                    }}
                   >
-                    {realMode ? (
-                      Array.from(
-                        { length: model.maxDuration - model.minDuration + 1 },
-                        (_, i) => model.minDuration + i,
-                      ).map((duration) => (
-                        <option key={duration} value={duration}>
-                          {duration} 秒
-                        </option>
-                      ))
+                    <Plus size={14} />
+                    填入示例灵感
+                  </button>
+                  <button
+                    className="button secondary compact"
+                    disabled={!draft.prompt.trim() || matching}
+                    onClick={match}
+                  >
+                    {matching ? (
+                      <LoaderCircle size={15} className="spinning" />
                     ) : (
-                      <>
-                        <option value={12}>12 秒 · 精简叙事</option>
-                        <option value={24}>24 秒 · 产品介绍</option>
-                        <option value={36}>36 秒 · 生活短片</option>
-                      </>
+                      <WandSparkles size={15} />
                     )}
-                  </select>
-                </label>
-                <label className="field">
-                  情绪与语气
-                  <select
-                    value={draft.mood}
-                    onChange={(e) => patch({ mood: e.target.value, shots: [] })}
-                  >
-                    <option>自然温柔</option>
-                    <option>从容自信</option>
-                    <option>愉悦轻快</option>
-                    <option>安静沉思</option>
-                  </select>
-                </label>
-                <label className="field">
-                  {realMode ? "视频模型" : "生成方式"}
-                  {realMode ? (
-                    <select
-                      value={model.id}
-                      onChange={(e) => {
-                        const nextModel = models.find(
-                          (item) => item.id === e.target.value,
-                        )!;
-                        patch({
-                          modelId: nextModel.id,
-                          duration: Math.min(
-                            nextModel.maxDuration,
-                            Math.max(nextModel.minDuration, draft.duration),
-                          ),
-                        });
-                      }}
-                    >
-                      {models.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <div className="static-input">
-                      <span className="tiny-dot" />
-                      Higgsfield · 本地模拟
+                    {matching ? "解析与检索中…" : "推荐品牌资产"}
+                  </button>
+                </div>
+                {matchResult && (
+                  <MatchPanel
+                    result={matchResult}
+                    assets={assets}
+                    onApply={applyCandidates}
+                    onClose={() => setMatchResult(null)}
+                  />
+                )}
+                <div className="section-heading divided">
+                  <h2>选择这段故事的主角</h2>
+                  <span>02 / 资产</span>
+                </div>
+                <div className="field-grid">
+                  {picker("character", "characterId")}
+                  {picker("product", "productId")}
+                  {picker("scene", "sceneId")}
+                  {picker("voice", "voiceId")}
+                </div>
+                <p className="helper">
+                  此处声音档案仅保留创作关联。如需真实声线复刻与口型同步，请切换「声音复刻与对口型」入口。
+                </p>
+                <div className="section-heading divided">
+                  <h2>定义画面的节奏</h2>
+                  <SlidersHorizontal size={17} />
+                </div>
+                <div className="field-grid">
+                  {!xyqMode && !wanMode && (
+                    <div className="field">
+                      <span>画面比例</span>
+                      <div
+                        className="segmented"
+                        role="group"
+                        aria-label="画面比例"
+                      >
+                        {(["16:9", "9:16"] as const).map((r) => (
+                          <button
+                            key={r}
+                            className={draft.ratio === r ? "active" : ""}
+                            onClick={() => patch({ ratio: r })}
+                            aria-pressed={draft.ratio === r}
+                          >
+                            <span
+                              className={`ratio-icon ${r === "9:16" ? "vertical" : ""}`}
+                            />
+                            {r === "16:9" ? "横屏 16:9" : "竖屏 9:16"}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
-                </label>
-                {realMode && (
-                  <>
-                    {model.id === "kling-reference" ? (
+                  {!xyqMode && !wanMode && (
+                    <label className="field">
+                      目标时长
+                      <select
+                        value={draft.duration}
+                        onChange={(e) =>
+                          patch({ duration: Number(e.target.value) })
+                        }
+                      >
+                        {realMode ? (
+                          Array.from(
+                            {
+                              length: model.maxDuration - model.minDuration + 1,
+                            },
+                            (_, i) => model.minDuration + i,
+                          ).map((duration) => (
+                            <option key={duration} value={duration}>
+                              {duration} 秒
+                            </option>
+                          ))
+                        ) : (
+                          <>
+                            <option value={12}>12 秒 · 精简叙事</option>
+                            <option value={24}>24 秒 · 产品介绍</option>
+                            <option value={36}>36 秒 · 生活短片</option>
+                          </>
+                        )}
+                      </select>
+                    </label>
+                  )}
+                  <label className="field">
+                    情绪与语气
+                    <select
+                      value={draft.mood}
+                      onChange={(e) =>
+                        patch({ mood: e.target.value, shots: [] })
+                      }
+                    >
+                      <option>自然温柔</option>
+                      <option>从容自信</option>
+                      <option>愉悦轻快</option>
+                      <option>安静沉思</option>
+                    </select>
+                  </label>
+                  {!xyqMode && !wanMode && (
+                    <label className="field">
+                      {realMode ? "视频模型" : "生成方式"}
+                      {realMode ? (
+                        <select
+                          value={model.id}
+                          onChange={(e) => {
+                            const nextModel = models.find(
+                              (item) => item.id === e.target.value,
+                            )!;
+                            patch({
+                              modelId: nextModel.id,
+                              duration: Math.min(
+                                nextModel.maxDuration,
+                                Math.max(nextModel.minDuration, draft.duration),
+                              ),
+                            });
+                          }}
+                        >
+                          {models.map((item) => (
+                            <option key={item.id} value={item.id}>
+                              {item.label}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <div className="static-input">
+                          <span className="tiny-dot" />
+                          Higgsfield · 本地模拟
+                        </div>
+                      )}
+                    </label>
+                  )}
+                  {realMode && (
+                    <>
+                      {model.id === "kling-reference" ? (
+                        <div className="field">
+                          <span>输出档位</span>
+                          <div className="static-input">平台标准档</div>
+                          <small className="helper">
+                            该接口不传分辨率参数，输出由平台决定。
+                          </small>
+                        </div>
+                      ) : (
+                        <label className="field">
+                          分辨率
+                          <select
+                            value={draft.resolution || "720p"}
+                            onChange={(e) =>
+                              patch({
+                                resolution: e.target.value as "720p" | "1080p",
+                              })
+                            }
+                          >
+                            <option value="720p">720p</option>
+                            <option value="1080p">1080p</option>
+                          </select>
+                        </label>
+                      )}
                       <div className="field">
-                        <span>输出档位</span>
-                        <div className="static-input">平台标准档</div>
+                        <span>音频输出</span>
+                        <label className="integration-check">
+                          <input
+                            type="checkbox"
+                            checked={draft.generateAudio ?? false}
+                            onChange={(e) =>
+                              patch({ generateAudio: e.target.checked })
+                            }
+                          />
+                          生成模型原生音频
+                        </label>
                         <small className="helper">
-                          该接口不传分辨率参数，输出由平台决定。
+                          可能包含环境音或模型配音，不代表克隆品牌声线。
                         </small>
                       </div>
-                    ) : (
+                    </>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="section-heading">
+                  <h2>让故事在镜头里展开</h2>
+                  <span>共 {draft.shots.length} 个镜头</span>
+                </div>
+                <p className="muted">
+                  基于当前素材的规则分镜，可自由修改。没有调用语言模型。
+                </p>
+                <div className="shots">
+                  {draft.shots.map((shot, i) => (
+                    <div className="shot" key={shot.id}>
+                      <div className="shot-top">
+                        <span>
+                          <Film size={15} />
+                          {shot.title}
+                        </span>
+                        <small>
+                          {Math.round(draft.duration / draft.shots.length)} 秒
+                        </small>
+                      </div>
                       <label className="field">
-                        分辨率
-                        <select
-                          value={draft.resolution || "720p"}
+                        画面与动作
+                        <textarea
+                          rows={2}
+                          value={shot.description}
                           onChange={(e) =>
                             patch({
-                              resolution: e.target.value as "720p" | "1080p",
+                              shots: draft.shots.map((s, n) =>
+                                n === i
+                                  ? { ...s, description: e.target.value }
+                                  : s,
+                              ),
                             })
                           }
-                        >
-                          <option value="720p">720p</option>
-                          <option value="1080p">1080p</option>
-                        </select>
+                        />
                       </label>
-                    )}
-                    <div className="field">
-                      <span>音频输出</span>
-                      <label className="integration-check">
+                      <label className="field">
+                        旁白／台词
                         <input
-                          type="checkbox"
-                          checked={draft.generateAudio ?? false}
+                          value={shot.narration}
                           onChange={(e) =>
-                            patch({ generateAudio: e.target.checked })
+                            patch({
+                              shots: draft.shots.map((s, n) =>
+                                n === i
+                                  ? { ...s, narration: e.target.value }
+                                  : s,
+                              ),
+                            })
                           }
                         />
-                        生成模型原生音频
                       </label>
-                      <small className="helper">
-                        可能包含环境音或模型配音，不代表克隆品牌声线。
-                      </small>
                     </div>
-                  </>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="section-heading">
-                <h2>让故事在镜头里展开</h2>
-                <span>共 {draft.shots.length} 个镜头</span>
-              </div>
-              <p className="muted">
-                基于当前素材的规则分镜，可自由修改。没有调用语言模型。
-              </p>
-              <div className="shots">
-                {draft.shots.map((shot, i) => (
-                  <div className="shot" key={shot.id}>
-                    <div className="shot-top">
-                      <span>
-                        <Film size={15} />
-                        {shot.title}
-                      </span>
-                      <small>
-                        {Math.round(draft.duration / draft.shots.length)} 秒
-                      </small>
-                    </div>
-                    <label className="field">
-                      画面与动作
-                      <textarea
-                        rows={2}
-                        value={shot.description}
-                        onChange={(e) =>
-                          patch({
-                            shots: draft.shots.map((s, n) =>
-                              n === i
-                                ? { ...s, description: e.target.value }
-                                : s,
-                            ),
-                          })
-                        }
-                      />
-                    </label>
-                    <label className="field">
-                      旁白／台词
-                      <input
-                        value={shot.narration}
-                        onChange={(e) =>
-                          patch({
-                            shots: draft.shots.map((s, n) =>
-                              n === i ? { ...s, narration: e.target.value } : s,
-                            ),
-                          })
-                        }
-                      />
-                    </label>
-                  </div>
-                ))}
-              </div>
-              <div className="inline-note">
-                <Film size={17} />
-                {realMode
-                  ? "本次将分镜编译为一条短视频提示词，提交所选参考图。分镜用于表达意图，不能保证逐镜精确表演；台词是提示信息，尚未做克隆声线与口型同步。"
-                  : "演示任务约 22 秒完成；输出为内置 6 秒静态素材动态样片，不是 AI 表演或声音克隆结果。"}
-              </div>
-            </>
-          )}
-          {realMode && (
-            <div className="match-panel" aria-label="生成费用估算">
-              <div className="integration-heading">
-                <div>
-                  <CircleDollarSign size={17} />
-                  <strong>当前账号费用估算</strong>
+                  ))}
                 </div>
-              </div>
-              <p className="helper">
-                按当前模型、时长与素材查询平台估算。估算会上传引用素材，不会创建视频生成任务；更改参数后需重新估算。
-              </p>
-              <div className="integration-actions">
-                <span className="helper">
-                  {estimate
-                    ? `预计 USD ${Number(estimate.usd).toFixed(4)} · ${estimate.credits} credits。以 API 实际消费为准。`
-                    : !realAvailable
-                      ? "配置并启用真实 API 后可查询估算。"
-                      : "先填写需求并选好人物、商品和场景。"}
-                </span>
-                <button
-                  className="button secondary compact"
-                  disabled={
-                    !realAvailable ||
-                    estimating ||
-                    submitting ||
-                    !draft.prompt.trim() ||
-                    !draft.characterId ||
-                    !draft.productId ||
-                    !draft.sceneId
-                  }
-                  onClick={() => void estimateCost()}
-                >
-                  {estimating ? (
-                    <LoaderCircle size={15} className="spinning" />
-                  ) : (
-                    <CircleDollarSign size={15} />
-                  )}
-                  {estimating ? "查询估算中…" : "估算本次费用"}
-                </button>
-              </div>
-            </div>
-          )}
-          {error && (
-            <p className="error-message" role="alert">
-              {error}
-            </p>
-          )}
-          <div className="creation-bottom">
-            <span>
-              <span className="tiny-dot" />
-              草稿自动保存在本地
-            </span>
-            {step === 1 ? (
-              <button className="button" onClick={next}>
-                下一步：脚本与分镜
-                <ArrowRight size={17} />
-              </button>
-            ) : (
-              <div className="button-row">
-                <button className="button secondary" onClick={() => setStep(1)}>
-                  上一步
-                </button>
-                <button
-                  className="button"
-                  disabled={submitting || (realMode && !realAvailable)}
-                  onClick={() => {
-                    if (draft.shots.some((s) => !s.description.trim())) {
-                      setError("请补充每个镜头的画面描述。");
-                      return;
+                <div className="inline-note">
+                  <Film size={17} />
+                  {wanMode
+                    ? "仅首帧参考图与文字分镜会提交给万相。模型根据首帧创作新动作，不能保证帽子不变形、人物不漂移；台词和声音档案不代表已做声线克隆。"
+                    : realMode || xyqMode
+                      ? "本次将分镜编译为一条短视频提示词，提交所选参考图。分镜用于表达意图，不能保证逐镜精确表演；台词是提示信息，尚未做克隆声线与口型同步。"
+                      : "演示任务约 22 秒完成；输出为内置 6 秒静态素材动态样片，不是 AI 表演或声音克隆结果。"}
+                </div>
+              </>
+            )}
+            {realMode && (
+              <div className="match-panel" aria-label="生成费用估算">
+                <div className="integration-heading">
+                  <div>
+                    <CircleDollarSign size={17} />
+                    <strong>当前账号费用估算</strong>
+                  </div>
+                </div>
+                <p className="helper">
+                  按当前模型、时长与素材查询平台估算。估算会上传引用素材，不会创建视频生成任务；更改参数后需重新估算。
+                </p>
+                <div className="integration-actions">
+                  <span className="helper">
+                    {estimate
+                      ? `预计 USD ${Number(estimate.usd).toFixed(4)} · ${estimate.credits} credits。以 API 实际消费为准。`
+                      : !realAvailable
+                        ? "配置并启用真实 API 后可查询估算。"
+                        : "先填写需求并选好人物、商品和场景。"}
+                  </span>
+                  <button
+                    className="button secondary compact"
+                    disabled={
+                      !realAvailable ||
+                      estimating ||
+                      submitting ||
+                      !draft.prompt.trim() ||
+                      !draft.characterId ||
+                      !draft.productId ||
+                      !draft.sceneId
                     }
-                    onSubmit();
-                  }}
-                >
-                  {submitting ? (
-                    <LoaderCircle size={17} className="spinning" />
-                  ) : (
-                    <WandSparkles size={17} />
-                  )}
-                  {submitting
-                    ? "正在提交…"
-                    : realMode
-                      ? "提交真实生成 · 按调用计费"
-                      : "提交模拟生成"}
-                </button>
+                    onClick={() => void estimateCost()}
+                  >
+                    {estimating ? (
+                      <LoaderCircle size={15} className="spinning" />
+                    ) : (
+                      <CircleDollarSign size={15} />
+                    )}
+                    {estimating ? "查询估算中…" : "估算本次费用"}
+                  </button>
+                </div>
               </div>
             )}
-          </div>
-        </section>
-        <aside className="creation-preview">
-          <div className="preview-poster">
-            <img
-              src={
-                selected.find((a) => a.kind === "character")?.image ||
-                mediaAsset("portrait.png")
-              }
-              alt="所选人物参考预览"
-            />
-            <span>人物参考 · 非生成结果</span>
-            <div>
-              <small>MUSE / BRAND STORY</small>
-              <h3>{draft.title || "你的下一段品牌故事"}</h3>
-            </div>
-          </div>
-          <div className="preview-summary">
-            <h3>本次使用的品牌资产</h3>
-            {selected.map((a) => (
-              <div key={a.id} className="summary-asset">
-                <AssetImage asset={a} />
-                <div>
-                  <small>{kindLabels[a.kind]}</small>
-                  <strong>{a.name}</strong>
+            {error && (
+              <p className="error-message" role="alert">
+                {error}
+              </p>
+            )}
+            <div className="creation-bottom">
+              <span>
+                <span className="tiny-dot" />
+                草稿自动保存在本地
+              </span>
+              {step === 1 ? (
+                <button className="button" onClick={next}>
+                  下一步：脚本与分镜
+                  <ArrowRight size={17} />
+                </button>
+              ) : (
+                <div className="button-row">
+                  <button
+                    className="button secondary"
+                    onClick={() => setStep(1)}
+                  >
+                    上一步
+                  </button>
+                  <button
+                    className="button"
+                    disabled={
+                      submitting ||
+                      (realMode && !realAvailable) ||
+                      (wanMode && !wanReady) ||
+                      (xyqMode && !xyqReady)
+                    }
+                    onClick={() => {
+                      if (draft.shots.some((s) => !s.description.trim())) {
+                        setError("请补充每个镜头的画面描述。");
+                        return;
+                      }
+                      onSubmit();
+                    }}
+                  >
+                    {submitting ? (
+                      <LoaderCircle size={17} className="spinning" />
+                    ) : (
+                      <WandSparkles size={17} />
+                    )}
+                    {submitting
+                      ? "正在提交…"
+                      : wanMode
+                        ? "提交万相真实生成 · 按量计费"
+                        : xyqMode
+                          ? "提交小云雀真实生成 · 消耗积分"
+                          : realMode
+                            ? "提交真实生成 · 按调用计费"
+                            : "提交模拟生成"}
+                  </button>
                 </div>
-                <Check size={14} />
-              </div>
-            ))}
-            <div className="spec-summary">
-              <span>{draft.ratio}</span>
-              <span>目标 {draft.duration}s</span>
-              <span>{draft.mood}</span>
+              )}
             </div>
-            <p className="helper">
-              {realMode
-                ? "所选参考图由服务端上传并缓存复用。跨镜头人物、动作和商品细节需要人工审核。声音档案仅演示关联。"
-                : "已保存的资产会自动带入创作，无需重复上传。声音档案仅演示关联。"}
-            </p>
-          </div>
-        </aside>
-      </div>
+          </section>
+          <aside className="creation-preview">
+            <div className="preview-poster">
+              <img
+                src={
+                  selected.find((a) => a.kind === "character")?.image ||
+                  mediaAsset("portrait.png")
+                }
+                alt="所选人物参考预览"
+              />
+              <span>人物参考 · 非生成结果</span>
+              <div>
+                <small>MUSE / BRAND STORY</small>
+                <h3>{draft.title || "你的下一段品牌故事"}</h3>
+              </div>
+            </div>
+            <div className="preview-summary">
+              <h3>本次使用的品牌资产</h3>
+              {selected.map((a) => (
+                <div key={a.id} className="summary-asset">
+                  <AssetImage asset={a} />
+                  <div>
+                    <small>{kindLabels[a.kind]}</small>
+                    <strong>{a.name}</strong>
+                  </div>
+                  <Check size={14} />
+                </div>
+              ))}
+              <div className="spec-summary">
+                <span>{wanMode ? "比例随首帧" : draft.ratio}</span>
+                <span>目标 {draft.duration}s</span>
+                <span>{draft.mood}</span>
+              </div>
+              <p className="helper">
+                {wanMode
+                  ? "实际传入的首帧见上方万相配置。其他选中素材仅保留创作档案；成功视频会自动保存到本机成品库。"
+                  : xyqMode
+                    ? "三张参考图将提交到小云雀，生成结果自动下载回本机成品库。人物、动作和商品细节仍需人工审核。"
+                    : realMode
+                      ? "所选参考图由服务端上传并缓存复用。跨镜头人物、动作和商品细节需要人工审核。声音档案仅演示关联。"
+                      : "已保存的资产会自动带入创作，无需重复上传。声音档案仅演示关联。"}
+              </p>
+            </div>
+          </aside>
+        </div>
+      )}
     </>
   );
 }

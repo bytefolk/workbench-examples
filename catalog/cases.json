@@ -18,9 +18,16 @@
     {
       "id": "brand-digital-human-studio",
       "title": "MUSE 缪思 · 品牌数字人技术验证工作台",
-      "summary": "用虚构品牌素材演示资产推荐、创作、任务、审核和成品复用，并提供独立运行的Higgsfield人物参考与视频API适配代码。",
+      "summary": "用虚构素材演示资产、视频、任务与审核复用，提供阿里云万相、声线复刻/TTS/对口型及Higgsfield等本机适配代码，真实效果待验证。",
       "domain": "dam",
-      "tags": ["marketing", "digital-human", "video-generation", "higgsfield"],
+      "tags": [
+        "marketing",
+        "digital-human",
+        "video-generation",
+        "higgsfield",
+        "aliyun",
+        "voice-cloning"
+      ],
       "status": "prototype",
       "path": "examples/dam/brand-digital-human-studio"
     }

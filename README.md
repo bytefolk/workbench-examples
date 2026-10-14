@@ -7,7 +7,7 @@
 - [场景分类](docs/domains.md)：CRM、ERP、MES、DAM 等 16 个业务领域。
 - [案例目录](catalog/cases.json)：机器可读索引，目前包含两个案例。
 - [本色 Persona Studio · 企业数字人工作台](examples/dam/character-material-library/README.md)：首个 DAM 案例，含六页工作台、业务规格、合成数据与制作审核闭环。
-- [MUSE 缪思 · 品牌数字人技术验证工作台](examples/dam/brand-digital-human-studio/README.md)：四页工作台、图片上传、候选确认、可播放示意样片及可配置的 Higgsfield 本机 API 适配代码。
+- [MUSE 缪思 · 品牌数字人技术验证工作台](examples/dam/brand-digital-human-studio/README.md)：四页工作台、图片上传、候选确认、可播放示意样片及可配置的阿里云万相、声音复刻/TTS/对口型与Higgsfield本机适配代码。
 - [案例规范](docs/case-standard.md)：目录、元信息、交付状态与验收要求。
 - [新增案例](CONTRIBUTING.md)：从模板开始，提交前执行检查。
 

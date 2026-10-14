@@ -180,9 +180,9 @@ export function SoulPanel({ asset, config, onUpdate, onClose }: Props) {
         </div>
         {!canCall && (
           <div className="integration-warning">
-            {config?.catalogOnly
-              ? "目录入口仅运行模拟，不能创建真实人物身份。请按案例说明启动独立工作台和本机代理。"
-              : "真实接口尚未启用。在服务端配置 HF_API_KEY、HF_ENABLE_REAL=true 后才能绑定、训练和生成；未配置时不伪造训练结果。"}
+            真实接口尚未启用。可查看流程与准备素材；在服务端配置
+            HF_API_KEY、HF_ENABLE_REAL=true
+            后才能绑定、训练和生成。未配置密钥时不伪造训练结果。
           </div>
         )}
         <section className="soul-section">

@@ -35,6 +35,80 @@ export interface RemoteGeneration {
   images?: string[];
   canCancel: boolean;
   error?: string;
+  providerStatus?: string;
+  duration?: number;
+}
+export interface XyqStatus {
+  installed: boolean;
+  loggedIn: boolean;
+  enabled: boolean;
+  balance?: string | null;
+  models: { key: string; name: string }[];
+}
+export interface WanConfig {
+  configured: boolean;
+  enabled: boolean;
+  source: "page" | "environment" | "none";
+  workspaceId: string;
+  region: "cn-beijing";
+  model: string;
+  credentialVerified: false;
+}
+export const providerApiRoot = (provider?: string) =>
+  provider === "speech"
+    ? "/api/speech"
+    : provider === "wan"
+      ? "/api/wan"
+      : provider === "xiaoyunque"
+        ? "/api/xyq"
+        : "/api";
+export interface SpeechSample {
+  id: string;
+  name: string;
+  duration: number;
+  size: number;
+  audioUrl: string;
+  createdAt: number;
+}
+export interface SpeechVoice {
+  id: string;
+  name: string;
+  characterId: string;
+  sampleId: string;
+  status: "processing" | "pending" | "completed" | "failed";
+  remoteVoiceId?: string;
+  model: string;
+  error?: string;
+  createdAt: number;
+}
+export interface SpeechAudio {
+  id: string;
+  voiceId: string;
+  characterId: string;
+  text: string;
+  status: "processing" | "completed" | "failed";
+  duration?: number;
+  audioUrl?: string;
+  error?: string;
+  canLipSync: boolean;
+  canRecover: boolean;
+  createdAt: number;
+}
+export interface SpeechLibrary {
+  samples: SpeechSample[];
+  voices: SpeechVoice[];
+  utterances: SpeechAudio[];
+  bindings: Record<string, string>;
+}
+export interface XyqModel {
+  key: string;
+  name?: string;
+  duration?: { min?: number; max?: number; step?: number; options?: number[] };
+  ratio?: { options?: string[] };
+  resolution?: { options?: string[] };
+  creation_modes?: { key: string; enabled?: boolean }[];
+  material_limits?: { image_total_limit?: number };
+  warnings?: string[];
 }
 export interface SoulResponse {
   id: string;
@@ -67,6 +141,7 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
       "目录入口仅运行模拟流程。真实验证请按案例说明启动独立工作台和本机代理。",
     );
   }
+
   const response = await fetch(path, {
     method: body === undefined ? "GET" : "POST",
     headers: { "Content-Type": "application/json", "X-Studio-Client": "1" },

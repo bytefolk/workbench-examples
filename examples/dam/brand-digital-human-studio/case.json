@@ -2,9 +2,16 @@
   "version": 1,
   "id": "brand-digital-human-studio",
   "title": "MUSE 缪思 · 品牌数字人技术验证工作台",
-  "summary": "用虚构品牌素材演示资产推荐、创作、任务、审核和成品复用，并提供独立运行的Higgsfield人物参考与视频API适配代码。",
+  "summary": "用虚构素材演示资产、视频、任务与审核复用，提供阿里云万相、声线复刻/TTS/对口型及Higgsfield等本机适配代码，真实效果待验证。",
   "domain": "dam",
-  "tags": ["marketing", "digital-human", "video-generation", "higgsfield"],
+  "tags": [
+    "marketing",
+    "digital-human",
+    "video-generation",
+    "higgsfield",
+    "aliyun",
+    "voice-cloning"
+  ],
   "status": "prototype",
   "source": {
     "date": "2026-10-14",
@@ -26,7 +33,7 @@
     "mode": "application",
     "command": "npm run demo",
     "entry": "workbench/dist/index.html",
-    "reset": "侧栏重置演示数据仅清当前案例浏览器状态，不取消外部平台任务或删除Soul ID。"
+    "reset": "仅清本案例浏览器记录，不取消云任务或删除人物/声线。"
   },
   "capabilities": [
     {
@@ -63,13 +70,31 @@
       "id": "voice-lipsync",
       "title": "克隆声音与口型",
       "mode": "unavailable",
-      "description": "声音档案仅示意关联，无声音克隆、TTS或独立音画同步。"
+      "description": "独立入口已有阿里云录音复刻、人物绑定、新台词TTS及图片音频对口型适配和模拟响应测试；真实账号与声线口型质量未验证，保持unavailable。"
     },
     {
       "id": "full-body-and-products",
       "title": "全身动作与商品细节",
       "mode": "unavailable",
       "description": "接口代码提供验证路径，无客户样片合格证据；零漂移、商品零误差和私有模型导出不承诺。"
+    },
+    {
+      "id": "wan-adapter",
+      "title": "阿里云万相视频适配代码",
+      "mode": "unavailable",
+      "description": "页面Key配置、单首帧视频、异步查询与本机媒体适配；仅模拟响应验证，没有真实账号成功回执。"
+    },
+    {
+      "id": "audio-library",
+      "title": "本机录音与语音资产",
+      "mode": "local",
+      "description": "独立入口上传有效WAV/MP3录音，按会话保存文件、试听及人物声线映射；目录不访问代理，非企业共享。"
+    },
+    {
+      "id": "xiaoyunque-adapter",
+      "title": "小云雀可选CLI适配",
+      "mode": "unavailable",
+      "description": "官方CLI1.0.38视频适配、查询与本机下载代码，默认关闭；真实授权与调用未验证。"
     }
   ]
 }

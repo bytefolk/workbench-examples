@@ -1,6 +1,44 @@
 import { test, expect } from "@playwright/test";
 const entry =
   "/examples/dam/brand-digital-human-studio/workbench/dist/index.html";
+test("new Wan and voice modes stay offline in the catalog", async ({
+  page,
+}) => {
+  const apiCalls: string[] = [];
+  page.on("request", (r) => {
+    if (new URL(r.url()).pathname.includes("/api/")) apiCalls.push(r.url());
+  });
+  await page.goto(entry + "#create");
+  await page.getByRole("button", { name: /阿里云万相真实 API/ }).click();
+  await expect(page.getByLabel("万相视频模型").locator("option")).toHaveCount(
+    3,
+  );
+  await page.getByLabel("万相视频模型").selectOption("wan2.6-i2v");
+  await expect(
+    page.getByText("模型原生有声 · 不等于克隆人物声线", { exact: true }),
+  ).toBeVisible();
+  await page.getByLabel("万相视频模型").selectOption("wan2.2-i2v-flash");
+  await expect(page.getByText("无声视频", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "配置阿里云", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: /声音复刻与对口型/ }).click();
+  await expect(
+    page.getByRole("heading", { name: /上传并试听录音/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", {
+      name: "提交对口型视频 · 按量计费",
+      exact: true,
+    }),
+  ).toBeDisabled();
+  const image = page.getByAltText("对口型人物参考");
+  await expect
+    .poll(() => image.evaluate((i) => (i as HTMLImageElement).naturalWidth))
+    .toBeGreaterThan(0);
+  await expect(image).toHaveAttribute("src", "./media/portrait.png");
+  expect(apiCalls).toEqual([]);
+});
 test("catalog retains both entries; MUSE assets are scoped and live API stays disabled", async ({
   page,
 }) => {

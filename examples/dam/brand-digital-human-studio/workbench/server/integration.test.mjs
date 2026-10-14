@@ -106,45 +106,6 @@ test("rules expose ambiguity and never invent asset IDs", () => {
   assert.equal(group.needsConfirmation, true);
   assert(result.groups.find((g) => g.kind === "voice").candidates.length === 0);
 });
-test("relative built-in media can be estimated without submitting generation; traversal is rejected", async (t) => {
-  let estimates = 0;
-  const f = await fixture(
-    { HF_API_KEY: "test-id:test-secret", HF_ENABLE_REAL: "true" },
-    async (url, options) => {
-      if (url.includes("generate-upload-url"))
-        return json({
-          upload_url: "https://storage.example/upload",
-          public_url: "https://media.example/ref.png",
-        });
-      if (url.includes("storage.example"))
-        return new Response(null, { status: 200 });
-      if (url.includes("/estimate/")) {
-        estimates++;
-        assert.equal(JSON.parse(options.body).image_urls.length, 3);
-        return json({ usd: "1", credits: "10" });
-      }
-      throw new Error("Generation must not be submitted by estimation");
-    },
-  );
-  t.after(() => f.server.close());
-  const relativeAssets = assets.map((a) => ({
-    ...a,
-    image: "./media/portrait.png",
-  }));
-  assert.equal(
-    (await f.call("/api/videos/estimate", { draft, assets: relativeAssets }))
-      .status,
-    200,
-  );
-  assert.equal(estimates, 1);
-  relativeAssets[0].image = "./media/../../.env";
-  assert.equal(
-    (await f.call("/api/videos/estimate", { draft, assets: relativeAssets }))
-      .status,
-    400,
-  );
-  assert.equal(estimates, 1);
-});
 test("missing key blocks before uploads or paid requests; external origin rejected", async (t) => {
   let calls = 0;
   const f = await fixture({}, async () => {
@@ -306,4 +267,43 @@ test("Qwen JSON recommendations are grounded to same-kind IDs", async (t) => {
       .candidates.map((c) => c.id),
     ["hat"],
   );
+});
+test("relative built-in media can be estimated without submitting generation; traversal is rejected", async (t) => {
+  let estimates = 0;
+  const f = await fixture(
+    { HF_API_KEY: "test-id:test-secret", HF_ENABLE_REAL: "true" },
+    async (url, options) => {
+      if (url.includes("generate-upload-url"))
+        return json({
+          upload_url: "https://storage.example/upload",
+          public_url: "https://media.example/ref.png",
+        });
+      if (url.includes("storage.example"))
+        return new Response(null, { status: 200 });
+      if (url.includes("/estimate/")) {
+        estimates++;
+        assert.equal(JSON.parse(options.body).image_urls.length, 3);
+        return json({ usd: "1", credits: "10" });
+      }
+      throw new Error("Generation must not be submitted by estimation");
+    },
+  );
+  t.after(() => f.server.close());
+  const relativeAssets = assets.map((a) => ({
+    ...a,
+    image: "./media/portrait.png",
+  }));
+  assert.equal(
+    (await f.call("/api/videos/estimate", { draft, assets: relativeAssets }))
+      .status,
+    200,
+  );
+  assert.equal(estimates, 1);
+  relativeAssets[0].image = "./media/../../.env";
+  assert.equal(
+    (await f.call("/api/videos/estimate", { draft, assets: relativeAssets }))
+      .status,
+    400,
+  );
+  assert.equal(estimates, 1);
 });

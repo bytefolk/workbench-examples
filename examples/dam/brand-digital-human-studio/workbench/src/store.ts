@@ -2,7 +2,7 @@ import { mediaAsset } from "./media";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createSeed } from "./data";
 import type { StudioState, Task } from "./types";
-import { api, type RemoteGeneration } from "./api";
+import { api, providerApiRoot, type RemoteGeneration } from "./api";
 const KEY = "bytefolk-brand-digital-human-studio-v1";
 function readState(): StudioState {
   try {
@@ -54,7 +54,7 @@ export function useStudio() {
       const prev = current.current;
       let changed = false;
       const tasks = prev.tasks.map((t) => {
-        if (!isActive(t) || t.provider === "higgsfield") return t;
+        if (!isActive(t) || t.provider) return t;
         const age = time - t.startedAt;
         const status =
           age >= 22000 ? "completed" : age >= 1800 ? "generating" : "queued";
@@ -71,13 +71,13 @@ export function useStudio() {
     let timer: ReturnType<typeof setTimeout>;
     async function poll() {
       const pending = current.current.tasks.filter(
-        (t) => t.provider === "higgsfield" && t.remoteRequestId && isActive(t),
+        (t) => t.provider && t.remoteRequestId && isActive(t),
       );
       await Promise.allSettled(
         pending.map(async (task) => {
           try {
             const result = await api<RemoteGeneration>(
-              `/api/requests/${task.remoteRequestId}`,
+              `${providerApiRoot(task.provider)}/requests/${task.remoteRequestId}`,
             );
             if (canceled) return;
             update((s) => ({
@@ -100,7 +100,7 @@ export function useStudio() {
                                 ].includes(result.status)
                               ? (result.status as Task["status"])
                               : t.status,
-                      providerStatus: result.status,
+                      providerStatus: result.providerStatus || result.status,
                       resultUrl: result.video,
                       canCancel: result.canCancel,
                       error: result.error,
@@ -153,13 +153,13 @@ export function downloadJson(value: unknown, filename: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 export function mediaPath(task: Task) {
-  if (task.provider === "higgsfield") return task.resultUrl || "";
+  if (task.provider) return task.resultUrl || "";
   return mediaAsset(
     `demo-${task.draft.ratio === "9:16" ? "portrait" : "wide"}.mp4`,
   );
 }
 export function downloadPath(task: Task) {
-  return task.provider === "higgsfield" && task.remoteRequestId
-    ? `/api/requests/${task.remoteRequestId}/download`
+  return task.provider && task.remoteRequestId
+    ? `${providerApiRoot(task.provider)}/requests/${task.remoteRequestId}/download`
     : mediaPath(task);
 }

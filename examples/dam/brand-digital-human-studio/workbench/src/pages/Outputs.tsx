@@ -72,8 +72,8 @@ export function Outputs({
         />
       </div>
       <div className="inline-note muted-note">
-        模拟作品使用内置 6
-        秒样片；真实作品播放平台结果。请下载保存真实成品，供应商链接可能过期。
+        模拟作品使用内置 6 秒样片；万相与小云雀真实作品保存到本机，Higgsfield
+        作品播放平台结果。正式多人共享仍需公司存储。
       </div>
       {filtered.length ? (
         <div className="output-grid">
@@ -96,8 +96,14 @@ export function Outputs({
                   <Play size={22} fill="currentColor" />
                 </span>
                 <span className="cover-duration">
-                  {t.provider === "higgsfield"
-                    ? "真实 API 结果"
+                  {t.provider
+                    ? t.provider === "speech"
+                      ? "对口型 · 本地成片"
+                      : t.provider === "wan"
+                        ? "万相 · 本地成片"
+                        : t.provider === "xiaoyunque"
+                          ? "小云雀 · 本地成片"
+                          : "真实 API 结果"
                     : "00:06 · 演示样片"}
                 </span>
                 <span
@@ -128,7 +134,11 @@ export function Outputs({
                   </button>
                 </div>
                 <p>
-                  {t.draft.ratio} · 目标 {t.draft.duration} 秒{" "}
+                  {t.provider === "wan" || t.provider === "speech"
+                    ? "比例随人物图"
+                    : t.draft.ratio}{" "}
+                  · {t.provider === "speech" ? "跟随语音" : "目标"}{" "}
+                  {Number(t.draft.duration.toFixed(1))} 秒{" "}
                   <span>{dateLabel(t.createdAt)}</span>
                 </p>
                 <div className="output-actions">
@@ -138,7 +148,7 @@ export function Outputs({
                   </button>
                   <a href={downloadPath(t)} download={`${t.title}.mp4`}>
                     <Download size={14} />
-                    {t.provider === "higgsfield" ? "下载成品" : "下载样片"}
+                    {t.provider ? "下载成品" : "下载样片"}
                   </a>
                 </div>
               </div>
@@ -194,9 +204,15 @@ export function Preview({
             </p>
           )}
           <p>
-            {task.provider === "higgsfield"
-              ? "Higgsfield 返回的视频 · 需人工审核人物和商品细节"
-              : "内置素材动态样片 · 6 秒 · 无声音克隆或 AI 表演"}
+            {task.provider === "speech"
+              ? "万相对口型结果 · 已保存到本机 · 需人工审核声音和口型"
+              : task.provider === "wan"
+                ? "阿里云万相返回的视频 · 已保存到本机 · 需人工审核"
+                : task.provider === "xiaoyunque"
+                  ? "小云雀返回的视频 · 已保存到本机 · 需人工审核"
+                  : task.provider === "higgsfield"
+                    ? "Higgsfield 返回的视频 · 需人工审核人物和商品细节"
+                    : "内置素材动态样片 · 6 秒 · 无声音克隆或 AI 表演"}
           </p>
         </div>
         <div className="preview-inspector">
@@ -205,11 +221,57 @@ export function Preview({
           </span>
           <h2>{task.title}</h2>
           <div className="spec-summary">
-            <span>{task.draft.ratio}</span>
-            <span>目标 {task.draft.duration} 秒</span>
+            <span>
+              {task.provider === "wan" || task.provider === "speech"
+                ? "比例随人物图"
+                : task.draft.ratio}
+            </span>
+            <span>
+              {task.provider === "speech" ? "跟随语音" : "目标"}{" "}
+              {Number(task.draft.duration.toFixed(1))} 秒
+            </span>
           </div>
-          <p className="muted">{task.draft.prompt}</p>
-          <h3>使用的品牌资产</h3>
+          <p className="muted">
+            {task.provider === "speech"
+              ? task.draft.speechText
+              : task.draft.prompt}
+          </p>
+          <h3>
+            {task.provider === "speech"
+              ? "人物与声线档案"
+              : task.provider === "wan"
+                ? "创作档案（仅首帧提交模型）"
+                : "使用的品牌资产"}
+          </h3>
+          {task.provider === "speech" && (
+            <p className="helper">
+              提交内容为人物图＋新台词音频。声线 ID：
+              {task.assets.find((a) => a.id === task.draft.characterId)
+                ?.clonedVoiceId || "查看人物绑定"}
+              ；独立商品/场景参考未提交。
+            </p>
+          )}
+          {task.provider === "speech" && task.draft.speechAudioId && (
+            <a
+              className="text-button"
+              href={`/api/speech/utterances/${task.draft.speechAudioId}/download`}
+              download
+            >
+              下载本片使用的语音
+            </a>
+          )}
+          {task.provider === "wan" && (
+            <p className="helper">
+              实际首帧：
+              {
+                task.assets.find(
+                  (a) =>
+                    a.id ===
+                    (task.draft.wanFrameAssetId || task.draft.characterId),
+                )?.name
+              }
+            </p>
+          )}
           <div className="tags">
             {task.assets.map((a) => (
               <span key={a.id}>{a.name.split(" · ")[0]}</span>
@@ -218,8 +280,9 @@ export function Preview({
           <div className="review-note">
             <strong>审核建议</strong>
             <p>
-              请检查人物一致性、商品细节、全身动作及声音口型。API
-              原生音频不等于品牌克隆声线。
+              {task.provider === "speech"
+                ? "请试听声线相似度、发音与情绪，检查口型时序及面部变化。此片仅验证语音驱动，不代表全身剧情和帽子细节已通过。"
+                : "请检查人物一致性、商品细节、全身动作及声音口型。API 原生音频不等于品牌克隆声线。"}
             </p>
           </div>
           <button
@@ -258,13 +321,13 @@ export function Preview({
             download={`${task.title}.mp4`}
           >
             <Download size={16} />
-            {task.provider === "higgsfield" ? "下载真实成品" : "下载演示视频"}
+            {task.provider ? "下载真实成品" : "下载演示视频"}
           </a>
           <button
             className="text-button"
             onClick={() =>
               downloadJson(
-                { demo: task.provider !== "higgsfield", ...task },
+                { demo: !task.provider, ...task },
                 `${task.title}-创作配置.json`,
               )
             }

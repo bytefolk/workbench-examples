@@ -215,6 +215,15 @@ export function Assets({
             </span>
             <h2>{detail.name}</h2>
             <p className="muted">{detail.description}</p>
+            {detail.audioUrl && (
+              <audio
+                controls
+                preload="metadata"
+                className="asset-audio"
+                src={detail.audioUrl}
+                aria-label="资产录音试听"
+              />
+            )}
             <div className="tags">
               {detail.tags.map((t) => (
                 <span key={t}>{t}</span>
@@ -242,6 +251,22 @@ export function Assets({
                   <div>
                     <dt>身份状态</dt>
                     <dd>{detail.soulStatus || "待查询"}</dd>
+                  </div>
+                </>
+              )}
+              {detail.clonedVoiceId && (
+                <>
+                  <div>
+                    <dt>复刻声线 ID</dt>
+                    <dd className="speech-id">{detail.clonedVoiceId}</dd>
+                  </div>
+                  <div>
+                    <dt>声音模型</dt>
+                    <dd>{detail.clonedVoiceModel}</dd>
+                  </div>
+                  <div>
+                    <dt>声线状态</dt>
+                    <dd>已绑定，可在声音工作室输入新台词</dd>
                   </div>
                 </>
               )}

@@ -136,14 +136,17 @@ export function Tasks({
                       <span>
                         <strong>{t.title}</strong>
                         <small>
-                          {t.id} · {t.draft.shots.length} 个镜头
+                          {t.id} ·{" "}
+                          {t.provider === "speech"
+                            ? "语音驱动单段视频"
+                            : `${t.draft.shots.length} 个镜头`}
                         </small>
                       </span>
                     </button>
                   </td>
                   <td>
                     <Status status={t.status} />
-                    {isActive(t) && t.provider !== "higgsfield" && (
+                    {isActive(t) && !t.provider && (
                       <div className="progress-row">
                         <div
                           className="progress-track"
@@ -158,11 +161,17 @@ export function Tasks({
                         <small>{getProgress(t, now)}%</small>
                       </div>
                     )}
-                    {isActive(t) && t.provider === "higgsfield" && (
+                    {isActive(t) && t.provider && (
                       <small className="task-subtext">
-                        {t.status === "queued"
-                          ? "平台排队中"
-                          : "平台处理中 · 不提供百分比"}
+                        {(t.provider === "wan" || t.provider === "speech") &&
+                        t.providerStatus === "SUBMITTING"
+                          ? "正在提交万相平台"
+                          : (t.provider === "wan" || t.provider === "speech") &&
+                              t.providerStatus === "SUCCEEDED"
+                            ? "生成成功 · 正在下载成片"
+                            : t.status === "queued"
+                              ? "平台排队中"
+                              : "平台处理中 · 不提供百分比"}
                       </small>
                     )}
                     {t.error && (
@@ -171,15 +180,23 @@ export function Tasks({
                   </td>
                   <td>
                     <span>
-                      {t.draft.ratio} ·{" "}
-                      {t.provider === "higgsfield"
-                        ? t.draft.modelId === "kling-reference"
-                          ? "平台标准档"
-                          : t.draft.resolution || "720p"
-                        : "模拟"}
+                      {t.provider === "wan" || t.provider === "speech"
+                        ? "比例随人物图"
+                        : t.draft.ratio}{" "}
+                      ·{" "}
+                      {t.provider === "wan" || t.provider === "speech"
+                        ? t.draft.resolution || "720p"
+                        : t.provider === "xiaoyunque"
+                          ? t.draft.xyqResolution || "平台档位"
+                          : t.provider === "higgsfield"
+                            ? t.draft.modelId === "kling-reference"
+                              ? "平台标准档"
+                              : t.draft.resolution || "720p"
+                            : "模拟"}
                     </span>
                     <small className="task-subtext">
-                      目标 {t.draft.duration} 秒
+                      {t.provider === "speech" ? "跟随语音" : "目标"}{" "}
+                      {Number(t.draft.duration.toFixed(1))} 秒
                     </small>
                   </td>
                   <td className="date-cell">{dateLabel(t.createdAt)}</td>
@@ -192,7 +209,12 @@ export function Tasks({
                         </button>
                       ) : isActive(t) ? (
                         <button
-                          disabled={t.provider === "higgsfield" && !t.canCancel}
+                          disabled={!!t.provider && !t.canCancel}
+                          title={
+                            t.provider && t.provider !== "higgsfield"
+                              ? "当前接入暂不支持取消"
+                              : undefined
+                          }
                           onClick={() => onCancel(t.id)}
                         >
                           取消
@@ -237,8 +259,8 @@ export function Tasks({
       )}
       <p className="table-footnote">
         <Clock3 size={14} />
-        模拟任务约 22
-        秒完成；真实任务查询供应商状态，仅排队时可取消，不显示模拟进度。
+        模拟任务约 22 秒完成；真实任务查询供应商结果，不显示模拟进度。Higgsfield
+        仅排队可取消，万相与小云雀暂不支持在此取消。
       </p>
       {task && (
         <Modal title="任务详情" onClose={() => setDetail(null)}>
@@ -259,21 +281,60 @@ export function Tasks({
               <div>
                 <dt>目标规格</dt>
                 <dd>
-                  {task.draft.ratio} / {task.draft.duration} 秒
+                  {task.provider === "wan" || task.provider === "speech"
+                    ? "比例随人物图"
+                    : task.draft.ratio}{" "}
+                  / {Number(task.draft.duration.toFixed(1))} 秒
                 </dd>
               </div>
               <div>
                 <dt>执行方式</dt>
                 <dd>
-                  {task.provider === "higgsfield"
-                    ? `Higgsfield · ${task.draft.modelId}`
-                    : "本地模拟 · 未调用 API"}
+                  {task.provider === "speech"
+                    ? `阿里云对口型 · ${task.draft.modelId}`
+                    : task.provider === "wan"
+                      ? `阿里云万相 · ${task.draft.modelId}`
+                      : task.provider === "xiaoyunque"
+                        ? `小云雀 · ${task.draft.modelId}`
+                        : task.provider === "higgsfield"
+                          ? `Higgsfield · ${task.draft.modelId}`
+                          : "本地模拟 · 未调用 API"}
                 </dd>
               </div>
             </dl>
-            <h3>创作需求</h3>
-            <p className="muted">{task.draft.prompt}</p>
-            <h3>引用资产快照</h3>
+            <h3>{task.provider === "speech" ? "实际新台词" : "创作需求"}</h3>
+            <p className="muted">
+              {task.provider === "speech"
+                ? task.draft.speechText
+                : task.draft.prompt}
+            </p>
+            <h3>
+              {task.provider === "speech"
+                ? "创作档案（提交人物图与新语音）"
+                : task.provider === "wan"
+                  ? "创作资产快照（仅首帧提交）"
+                  : "引用资产快照"}
+            </h3>
+            {task.provider === "speech" && (
+              <p className="helper">
+                人物图与已生成的新台词音频用于对口型；其他商品、场景及分镜仅保留在创作档案中。声线
+                ID：
+                {task.assets.find((a) => a.id === task.draft.characterId)
+                  ?.clonedVoiceId || "查看人物声线绑定"}
+              </p>
+            )}
+            {task.provider === "wan" && (
+              <p className="helper">
+                实际首帧：
+                {
+                  task.assets.find(
+                    (a) =>
+                      a.id ===
+                      (task.draft.wanFrameAssetId || task.draft.characterId),
+                  )?.name
+                }
+              </p>
+            )}
             <div className="tags">
               {task.assets.map((a) => (
                 <span key={a.id}>{a.name}</span>
@@ -290,19 +351,13 @@ export function Tasks({
               </div>
               <div className={task.status === "completed" ? "done" : ""}>
                 <i />
-                {task.provider === "higgsfield"
-                  ? "平台生成与结果返回"
-                  : "模拟生成与成品归档"}
+                {task.provider ? "平台生成与结果返回" : "模拟生成与成品归档"}
               </div>
             </div>
             {task.error && <p className="error-message">{task.error}</p>}
             <button
               className="button full"
-              disabled={
-                task.provider === "higgsfield" &&
-                isActive(task) &&
-                !task.canCancel
-              }
+              disabled={!!task.provider && isActive(task) && !task.canCancel}
               onClick={() => {
                 if (task.status === "completed") onPreview(task);
                 else if (isActive(task)) onCancel(task.id);

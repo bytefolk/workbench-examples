@@ -5,6 +5,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { lookup } from "node:dns/promises";
 import { rankAssets } from "../shared/matching.mjs";
+import { installXiaoyunque } from "./xiaoyunque.mjs";
+import { installWan } from "./wan.mjs";
+import { installSpeech } from "./speech.mjs";
 import {
   ApiError,
   apiUrl,
@@ -55,6 +58,7 @@ export async function createApp({
   fetchImpl = fetch,
   dataDir = path.join(root, ".local", "higgsfield-demo"),
   checkMediaUrl = publicUrl,
+  xyqCli,
 } = {}) {
   await mkdir(dataDir, { recursive: true });
   const dbPath = path.join(dataDir, "state.json");
@@ -561,6 +565,28 @@ export async function createApp({
       res.send(bytes);
     }),
   );
+  await installXiaoyunque(app, {
+    root,
+    env,
+    dataDir,
+    checkMediaUrl,
+    fetchImpl,
+    callCli: xyqCli,
+  });
+  const wanServices = await installWan(app, {
+    root,
+    dataDir,
+    env,
+    fetchImpl,
+    checkMediaUrl,
+  });
+  await installSpeech(app, {
+    root,
+    dataDir,
+    fetchImpl,
+    checkMediaUrl,
+    ...wanServices,
+  });
   app.use("/api", (req, res) =>
     res.status(404).json({ error: "接口不存在。" }),
   );
