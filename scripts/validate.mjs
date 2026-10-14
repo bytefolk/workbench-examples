@@ -82,6 +82,126 @@ export function validateTaxonomy(serviceModels, domains, catalog) {
   return { serviceModelIds, domainsById };
 }
 
+function uniqueById(items, kind) {
+  const byId = new Map();
+  for (const item of items) {
+    assert(!byId.has(item.id), `Duplicate ${kind}: ${item.id}`);
+    byId.set(item.id, item);
+  }
+  return byId;
+}
+
+/** 标准主干、场景变体与实现案例是引用关系；参考设计不需要可运行目录。 */
+export function validateAssetRelations({
+  serviceModels,
+  groups,
+  domains,
+  blueprints,
+  variants,
+  catalog,
+}) {
+  const { serviceModelIds, domainsById } = validateTaxonomy(
+    serviceModels,
+    domains,
+    catalog,
+  );
+  const groupsById = uniqueById(groups.groups, "domain group");
+  for (const group of groups.groups) {
+    assert(
+      serviceModelIds.has(group.serviceModel),
+      `Unknown service model for group ${group.id}: ${group.serviceModel}`,
+    );
+  }
+  for (const domain of domains.domains) {
+    const group = groupsById.get(domain.groupId);
+    assert(group, `Unknown group for domain ${domain.id}: ${domain.groupId}`);
+    assert.equal(
+      group.serviceModel,
+      domain.serviceModel,
+      `Domain ${domain.id} does not belong to group ${group.id} service model`,
+    );
+  }
+  const blueprintsById = uniqueById(blueprints.blueprints, "blueprint");
+  for (const blueprint of blueprints.blueprints) {
+    assert(
+      serviceModelIds.has(blueprint.serviceModel),
+      `Unknown service model for blueprint ${blueprint.id}: ${blueprint.serviceModel}`,
+    );
+    const domain = domainsById.get(blueprint.domain);
+    assert(
+      domain,
+      `Unknown domain for blueprint ${blueprint.id}: ${blueprint.domain}`,
+    );
+    assert.equal(
+      domain.serviceModel,
+      blueprint.serviceModel,
+      `Blueprint ${blueprint.id} does not belong to domain ${domain.id} service model`,
+    );
+  }
+  const variantsById = uniqueById(variants.variants, "variant");
+  for (const variant of variants.variants) {
+    assert(
+      blueprintsById.has(variant.blueprintId),
+      `Unknown blueprint for variant ${variant.id}: ${variant.blueprintId}`,
+    );
+  }
+  for (const entry of catalog.cases) {
+    const blueprint = blueprintsById.get(entry.blueprintId);
+    assert(
+      blueprint,
+      `Unknown blueprint for case ${entry.id}: ${entry.blueprintId}`,
+    );
+    assert.equal(
+      blueprint.domain,
+      entry.domain,
+      `Case ${entry.id} does not belong to blueprint ${blueprint.id} domain`,
+    );
+    assert.equal(
+      blueprint.serviceModel,
+      entry.serviceModel,
+      `Case ${entry.id} does not belong to blueprint ${blueprint.id} service model`,
+    );
+    const variant = variantsById.get(entry.variantId);
+    assert(variant, `Unknown variant for case ${entry.id}: ${entry.variantId}`);
+    assert.equal(
+      variant.blueprintId,
+      entry.blueprintId,
+      `Case ${entry.id} variant does not belong to blueprint ${entry.blueprintId}`,
+    );
+  }
+  return { groupsById, blueprintsById, variantsById };
+}
+
+/** 文件检查不代替真实性、脱敏范围和客户验收的人工审查。 */
+export async function validateEvidence(manifest, base) {
+  const evidence = manifest.evidence || [];
+  if (manifest.caseKind === "project-case")
+    assert(
+      evidence.length > 0,
+      "Project case requires actual project evidence",
+    );
+  assert.equal(
+    new Set(evidence.map((item) => item.path)).size,
+    evidence.length,
+    "Duplicate evidence paths",
+  );
+  for (const item of evidence) {
+    const target = await existsInside(base, item.path);
+    const info = await fs.stat(target);
+    assert(
+      info.isFile() && info.size > 0,
+      `Evidence must be a nonempty file: ${item.path}`,
+    );
+    if ([".md", ".txt", ".json"].includes(path.extname(target))) {
+      const content = await fs.readFile(target, "utf8");
+      assert(
+        content.trim() && !content.includes("REPLACE_"),
+        `Unfilled evidence: ${item.path}`,
+      );
+    }
+  }
+}
+
 export function validateCatalogManifest(entry, manifest) {
   for (const field of [
     "id",
@@ -91,6 +211,9 @@ export function validateCatalogManifest(entry, manifest) {
     "domain",
     "status",
     "tags",
+    "caseKind",
+    "blueprintId",
+    "variantId",
   ]) {
     assert.deepEqual(
       manifest[field],
@@ -159,14 +282,28 @@ export async function validateRepository() {
   const serviceModels = await json("catalog/service-models.json");
   const domains = await json("catalog/domains.json");
   const catalog = await json("catalog/cases.json");
+  const groups = await json("catalog/domain-groups.json");
+  const blueprints = await json("catalog/blueprints.json");
+  const variants = await json("catalog/variants.json");
   await validateDocument(serviceModels, "schemas/service-models.schema.json");
   await validateDocument(domains, "schemas/domains.schema.json");
   await validateDocument(catalog, "schemas/catalog.schema.json");
+  await validateDocument(groups, "schemas/domain-groups.schema.json");
+  await validateDocument(blueprints, "schemas/blueprints.schema.json");
+  await validateDocument(variants, "schemas/variants.schema.json");
   const { serviceModelIds, domainsById } = validateTaxonomy(
     serviceModels,
     domains,
     catalog,
   );
+  validateAssetRelations({
+    serviceModels,
+    groups,
+    domains,
+    blueprints,
+    variants,
+    catalog,
+  });
   for (const entry of catalog.cases) {
     const manifest = await json(`${entry.path}/case.json`);
     await validateDocument(manifest, "schemas/case.schema.json");
@@ -177,6 +314,7 @@ export async function validateRepository() {
       "Duplicate capability IDs",
     );
     const base = path.join(root, entry.path);
+    await validateEvidence(manifest, base);
     for (const relative of Object.values(manifest.deliverables)) {
       const target = await existsInside(base, relative);
       assert(
@@ -268,6 +406,9 @@ export async function validateRepository() {
   return {
     serviceModels: serviceModels.serviceModels.length,
     domains: domains.domains.length,
+    domainGroups: groups.groups.length,
+    blueprints: blueprints.blueprints.length,
+    variants: variants.variants.length,
     cases: catalog.cases.length,
     legacyDemoAssets: fixtures.assets.length,
   };

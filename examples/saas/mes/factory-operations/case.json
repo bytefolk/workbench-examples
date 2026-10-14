@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "id": "factory-operations",
   "title": "工厂运营工作台",
   "summary": "通过照片上报、审批配送与断针回收追溯工厂申领，记录销售拜访与跟进，使用可选择的数据和资产服务。",
@@ -66,5 +66,14 @@
       "description": "自动语音/图片分析、AI 总结和钉钉通知没有接入，不以模拟数据表示已执行。"
     }
   ],
-  "serviceModel": "saas"
+  "serviceModel": "saas",
+  "caseKind": "reference-implementation",
+  "blueprintId": "mes-production-operations",
+  "variantId": "garment-workshop-consumables",
+  "evidence": [
+    {
+      "path": "evidence/verification.md",
+      "title": "专用 QA 环境的真实服务集成与权限验证记录"
+    }
+  ]
 }

@@ -4,6 +4,16 @@
 
 当前状态为 **integrated**：React 工作台已在专用 QA 项目连接真实 Supabase 认证、数据库和私有资产存储，完成申领、回收、拜访及权限验证。标准数据端口与企业 HTTP 适配器可供其他部署复用；具体覆盖与限制见 [验证记录](evidence/verification.md)。MySQL 后端、AI 总结、语音识别和钉钉通知尚未接入，客户正式验收尚未完成。
 
+## 资产复用关系
+
+本案例是 **参考实现（reference-implementation）**，沿用以下设计资产：
+
+- 标准主干：`mes-production-operations`，见 [主干目录](../../../../catalog/blueprints.json)。复用现场上报、主管处理、执行回执、附件和过程追溯的结构。
+- 场景变体：`garment-workshop-consumables`，见 [变体目录](../../../../catalog/variants.json)。增加服装车间合同号、物料、工位、断针照片及碎片回收闭环。
+- 本实现：`factory-operations`。将该变体实现为可运行工作台，并扩展销售拜访记录；身份、业务库和资产存储由标准端口适配，其他工厂可替换字段、审批角色与数据提供方。
+
+主干与变体是设计参考，销售拜访是本实现的附加范围，不是所有 MES 主干的必需能力。现有[证据](evidence/verification.md)来自合成输入和专用 QA 环境的真实服务验证，尚未收录客户生产部署或项目验收，因此不标记为项目案例（project-case）。
+
 ## 页面与角色
 
 - **概览**：当前工作区申领和拜访概况。

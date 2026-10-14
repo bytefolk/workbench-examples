@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "groups": [
+    {
+      "id": "customer-revenue",
+      "serviceModel": "saas",
+      "title": "客户与收入",
+      "summary": "从销售机会到客户服务，管理客户关系、报价、订阅与续约"
+    },
+    {
+      "id": "marketing-commerce",
+      "serviceModel": "saas",
+      "title": "营销与商业运营",
+      "summary": "管理触达、客群、商品表达、会员和交易履约"
+    },
+    {
+      "id": "finance-control",
+      "serviceModel": "saas",
+      "title": "财务与经营控制",
+      "summary": "管理收付、核算、资金、费用、税务与经营计划"
+    },
+    {
+      "id": "people-learning",
+      "serviceModel": "saas",
+      "title": "人力与学习",
+      "summary": "管理人员关系、招聘、出勤、薪酬、人才发展和培训"
+    },
+    {
+      "id": "supply-logistics",
+      "serviceModel": "saas",
+      "title": "采购与供应物流",
+      "summary": "管理供需、供应商、采购、库存、仓储、运输和贸易"
+    },
+    {
+      "id": "product-manufacturing",
+      "serviceModel": "saas",
+      "title": "产品与生产",
+      "summary": "管理设计版本、排程、现场执行、质量、安全与实验室"
+    },
+    {
+      "id": "asset-facilities",
+      "serviceModel": "saas",
+      "title": "资产与空间",
+      "summary": "管理设备、设施、车辆和不动产的运营生命周期"
+    },
+    {
+      "id": "content-collaboration",
+      "serviceModel": "saas",
+      "title": "内容与协作",
+      "summary": "管理数字内容、知识、办公流程、项目、组合和会议行动"
+    },
+    {
+      "id": "governance-legal",
+      "serviceModel": "saas",
+      "title": "治理与法务",
+      "summary": "管理风险、合同、审计、隐私与可持续披露证据"
+    },
+    {
+      "id": "enterprise-it",
+      "serviceModel": "saas",
+      "title": "企业协同与信息服务",
+      "summary": "管理跨部门资源协同、IT服务、经营分析和业务主数据"
+    },
+    {
+      "id": "platform-capabilities",
+      "serviceModel": "paas",
+      "title": "开发与数据平台",
+      "summary": "向应用提供开发、运行、集成、数据与AI平台能力"
+    },
+    {
+      "id": "infrastructure-resources",
+      "serviceModel": "iaas",
+      "title": "基础设施资源",
+      "summary": "管理计算、存储、网络、集群与备份资源"
+    }
+  ]
+}

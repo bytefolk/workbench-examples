@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "cases": [
     {
       "id": "character-material-library",
@@ -14,7 +14,10 @@
       ],
       "status": "prototype",
       "path": "examples/saas/dam/character-material-library",
-      "serviceModel": "saas"
+      "serviceModel": "saas",
+      "caseKind": "reference-implementation",
+      "blueprintId": "dam-content-assets",
+      "variantId": "digital-human-content-production"
     },
     {
       "id": "factory-operations",
@@ -30,7 +33,10 @@
       ],
       "status": "integrated",
       "path": "examples/saas/mes/factory-operations",
-      "serviceModel": "saas"
+      "serviceModel": "saas",
+      "caseKind": "reference-implementation",
+      "blueprintId": "mes-production-operations",
+      "variantId": "garment-workshop-consumables"
     }
   ]
 }

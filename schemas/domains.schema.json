@@ -5,7 +5,7 @@
   "required": ["version", "domains"],
   "properties": {
     "version": {
-      "const": 2
+      "const": 3
     },
     "domains": {
       "type": "array",
@@ -13,7 +13,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "title", "summary", "serviceModel"],
+        "required": ["id", "title", "summary", "serviceModel", "groupId"],
         "properties": {
           "id": {
             "type": "string",
@@ -29,6 +29,10 @@
           },
           "serviceModel": {
             "enum": ["saas", "paas", "iaas"]
+          },
+          "groupId": {
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "type": "string"
           }
         }
       }

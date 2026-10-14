@@ -19,25 +19,23 @@ const domains = await readJson("catalog/domains.json");
 const catalog = await readJson("catalog/cases.json");
 const clone = (value) => structuredClone(value);
 
-test("分类字典包含三个服务模型，案例保持真实的三级归属", async () => {
+test("分类字典与资产目录按引用保持真实归属", async () => {
   const result = await validateRepository();
-  assert.equal(result.serviceModels, 3);
-  assert.equal(result.domains, 35);
-  assert.deepEqual(
-    Object.fromEntries(
-      serviceModels.serviceModels.map((model) => [
-        model.id,
-        domains.domains.filter((domain) => domain.serviceModel === model.id)
-          .length,
-      ]),
-    ),
-    { saas: 22, paas: 8, iaas: 5 },
+  assert.equal(result.serviceModels, serviceModels.serviceModels.length);
+  assert.equal(result.domains, domains.domains.length);
+  assert.equal(result.cases, catalog.cases.length);
+  for (const model of serviceModels.serviceModels)
+    assert(domains.domains.some((domain) => domain.serviceModel === model.id));
+  assert.equal(
+    catalog.cases.find((entry) => entry.id === "factory-operations")?.domain,
+    "mes",
   );
-  assert(catalog.cases.every((entry) => entry.serviceModel === "saas"));
-  assert(catalog.cases.some((entry) => entry.domain === "mes"));
-  assert(catalog.cases.some((entry) => entry.domain === "dam"));
+  assert.equal(
+    catalog.cases.find((entry) => entry.id === "character-material-library")
+      ?.domain,
+    "dam",
+  );
 });
-
 test("未知服务模型、未知领域和跨父级案例均拒绝", () => {
   const unknownDomainParent = clone(domains);
   unknownDomainParent.domains[0].serviceModel = "unknown";
@@ -97,7 +95,7 @@ test("目录路径必须同时匹配服务模型、领域和案例ID", () => {
   }
 });
 
-test("v2 schema拒绝旧版本、缺失父级和旧两级路径", async () => {
+test("v3 schema拒绝旧版本、缺失父级和旧两级路径", async () => {
   const missingDomainParent = clone(domains);
   delete missingDomainParent.domains[0].serviceModel;
   await assert.rejects(

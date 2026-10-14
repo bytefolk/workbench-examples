@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "id": "character-material-library",
   "title": "本色 Persona Studio · 企业数字人工作台",
   "summary": "管理人物与素材版本，通过需求解析、模拟视频生成、人工审核和成片归档演示企业内容制作闭环。",
@@ -72,5 +72,14 @@
       "description": "工作台可模拟试戴内容的制作流程，真实服饰配饰细节与试戴质量尚未验证。"
     }
   ],
-  "serviceModel": "saas"
+  "serviceModel": "saas",
+  "caseKind": "reference-implementation",
+  "blueprintId": "dam-content-assets",
+  "variantId": "digital-human-content-production",
+  "evidence": [
+    {
+      "path": "evidence/verification.md",
+      "title": "本地模拟工作台的功能与浏览器验证记录"
+    }
+  ]
 }

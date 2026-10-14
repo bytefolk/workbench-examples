@@ -15,11 +15,15 @@
     "deliverables",
     "runtime",
     "capabilities",
-    "serviceModel"
+    "serviceModel",
+    "caseKind",
+    "blueprintId",
+    "variantId",
+    "evidence"
   ],
   "properties": {
     "version": {
-      "const": 2
+      "const": 3
     },
     "id": {
       "type": "string",
@@ -163,6 +167,55 @@
     },
     "serviceModel": {
       "enum": ["saas", "paas", "iaas"]
+    },
+    "caseKind": {
+      "enum": ["reference-implementation", "project-case"]
+    },
+    "blueprintId": {
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "type": "string"
+    },
+    "variantId": {
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "type": "string"
+    },
+    "evidence": {
+      "items": {
+        "properties": {
+          "path": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          }
+        },
+        "required": ["title", "path"],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "type": "array"
     }
-  }
+  },
+  "allOf": [
+    {
+      "then": {
+        "properties": {
+          "evidence": {
+            "minItems": 1,
+            "type": "array"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "caseKind": {
+            "const": "project-case"
+          }
+        }
+      }
+    }
+  ]
 }

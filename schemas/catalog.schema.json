@@ -5,7 +5,7 @@
   "required": ["version", "cases"],
   "properties": {
     "version": {
-      "const": 2
+      "const": 3
     },
     "cases": {
       "type": "array",
@@ -20,7 +20,10 @@
           "tags",
           "status",
           "path",
-          "serviceModel"
+          "serviceModel",
+          "caseKind",
+          "blueprintId",
+          "variantId"
         ],
         "properties": {
           "id": {
@@ -62,6 +65,17 @@
           },
           "serviceModel": {
             "enum": ["saas", "paas", "iaas"]
+          },
+          "caseKind": {
+            "enum": ["reference-implementation", "project-case"]
+          },
+          "blueprintId": {
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "type": "string"
+          },
+          "variantId": {
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "type": "string"
           }
         }
       }

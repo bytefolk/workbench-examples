@@ -6,22 +6,22 @@
     <meta name="theme-color" content="#245743" />
     <meta
       name="description"
-      content="按 SaaS、PaaS、IaaS 服务分层探索 ByteFolk 工作台案例，再按 CRM、ERP、MES 等子类查找具体场景。"
+      content="探索 SaaS 工作台案例资产：从标准业务主干到场景变体，查阅角色、对象、流程、页面、扩展点及关联参考实现与项目材料。"
     />
-    <title>ByteFolk · 工作台案例库</title>
+    <title>ByteFolk · 工作台案例资产库</title>
     <link rel="stylesheet" href="catalog/catalog.css" />
   </head>
-  <body>
+  <body class="asset-library">
     <header class="site-header">
-      <a class="brand" href="/" aria-label="ByteFolk 工作台案例库首页"
+      <a class="brand" href="/" aria-label="ByteFolk 工作台案例资产库首页"
         ><span class="brand-mark">B<span>·</span></span
         ><span
           >ByteFolk<span class="brand-divider">/</span
-          ><small>工作台案例库</small></span
+          ><small>工作台案例资产库</small></span
         ></a
       >
       <nav class="header-links" aria-label="网站导航">
-        <a href="docs/case-standard.md">案例规范</a
+        <a href="docs/case-standard.md">资产规范</a
         ><a
           href="https://github.com/bytefolk/workbench-examples"
           target="_blank"
@@ -33,52 +33,48 @@
     <main>
       <section class="hero" aria-labelledby="page-title">
         <div>
-          <div class="eyebrow"><span></span> WORKBENCH EXAMPLES / 案例索引</div>
-          <h1 id="page-title">从服务分层，找到你的<span>工作台。</span></h1>
+          <div class="eyebrow"><span></span> WORKBENCH ASSET LIBRARY</div>
+          <h1 id="page-title">选一个业务主干，<span>延伸你的工作台。</span></h1>
           <p>
-            先选择服务层，再进入业务或技术分类。<br
-              class="mobile-break"
-            />让每个场景，都有清晰的位置。
+            标准主干定义共性，场景变体承载适配，参考实现与项目案例提供可查阅的材料。
           </p>
         </div>
-        <div class="hero-index" aria-hidden="true">
-          <span>EXPLORE THE LAYERS</span>
-          <div><i>01</i> 应用 <b>/</b> 平台 <b>/</b> 基础设施</div>
-          <small>需求 · 流程 · 数据 · 验证</small>
-        </div>
-      </section>
-      <section class="layer-section" aria-labelledby="layer-heading">
-        <div class="section-label">
-          <h2 id="layer-heading"><span>01</span> 选择服务层</h2>
-          <span>从应用场景到基础资源</span>
-        </div>
-        <div
-          id="service-models"
-          class="service-models"
-          aria-label="服务层"
-          aria-busy="true"
+        <a class="button secondary hero-contribute" href="CONTRIBUTING.md"
+          >沉淀一份新资产 <span aria-hidden="true">↗</span></a
         >
-          <div class="loading-panel" role="status">正在加载服务分类…</div>
+      </section>
+      <section class="layer-section" aria-label="服务层">
+        <div id="service-models" class="service-models" aria-busy="true">
+          <div class="loading-panel" role="status">正在加载案例资产…</div>
         </div>
       </section>
       <div id="catalog-error" class="catalog-error" role="alert" hidden>
         <div>
-          <strong>目录暂时无法加载</strong>
+          <strong>资产目录暂时无法加载</strong>
           <p id="error-message"></p>
         </div>
         <button id="retry" type="button">
           重新加载 <span aria-hidden="true">↻</span>
         </button>
       </div>
-      <div class="catalog-layout" id="catalog-content" hidden>
+      <section
+        id="inventory"
+        class="inventory"
+        aria-label="当前服务层资产统计"
+        hidden
+      ></section>
+      <div id="catalog-content" class="catalog-layout" hidden>
         <aside class="category-panel" aria-labelledby="category-heading">
           <div class="category-heading">
             <h2 id="category-heading">
-              <span>02</span> <span id="category-layer">SaaS</span> 分类
+              <span id="category-layer">SaaS</span> 业务分类
             </h2>
             <span id="domain-total" class="count-pill"></span>
           </div>
-          <label class="search-box category-search"
+          <label class="group-selector"
+            ><span>业务族</span
+            ><select id="group-select" aria-label="筛选业务族"></select></label
+          ><label class="search-box category-search"
             ><svg viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="10.5" cy="10.5" r="6.5"></circle>
               <path d="m16 16 4 4"></path></svg
@@ -88,12 +84,12 @@
               placeholder="查找分类，如 CRM、MES"
               aria-label="查找子类"
           /></label>
-          <div id="domains" class="domain-list" aria-label="子类筛选"></div>
+          <div id="domains" class="domain-list" aria-label="业务分类导航"></div>
           <p id="no-domains" class="no-domains" hidden>
             没有匹配的分类，换个关键词试试。
           </p>
           <div class="category-footer">
-            <span></span>分类已定义，案例持续收录中
+            <span></span>先选业务族，再进入具体分类
           </div>
         </aside>
         <section class="results" aria-labelledby="results-title">
@@ -104,11 +100,17 @@
                 class="breadcrumb"
                 aria-label="当前分类"
               ></nav>
-              <h2 id="results-title">全部业务应用</h2>
+              <h2 id="results-title">全部 SaaS 资产</h2>
               <p id="domain-description"></p>
             </div>
             <span id="results-count" class="results-count"></span>
           </div>
+          <div
+            class="asset-tabs"
+            id="asset-tabs"
+            role="tablist"
+            aria-label="资产类型"
+          ></div>
           <div class="results-toolbar">
             <label class="search-box case-search"
               ><svg viewBox="0 0 24 24" aria-hidden="true">
@@ -117,36 +119,42 @@
               ><input
                 id="search"
                 type="search"
-                placeholder="搜索案例名称、场景或标签…"
-                aria-label="搜索案例" /></label
-            ><span
+                placeholder="搜索主干、变体、行业或关键词…"
+                aria-label="搜索案例资产" /></label
+            ><select id="industry-select" aria-label="筛选行业"></select>
+          </div>
+          <div class="results-context">
+            <p id="type-description"></p>
+            <span
               id="summary"
               class="catalog-summary"
               aria-live="polite"
             ></span>
           </div>
-          <div id="cases" class="case-grid"></div>
-          <div id="empty" class="empty-state" hidden>
-            <div class="empty-symbol" aria-hidden="true">
-              <svg viewBox="0 0 48 48">
-                <path d="M8 14h12l4 5h16v20H8z" />
-                <path d="M8 24h32M21 30h6" />
-              </svg>
-            </div>
-            <span class="eyebrow" id="empty-code">ROOM FOR THE NEXT IDEA</span>
-            <h3 id="empty-title">这个分类暂无案例</h3>
-            <p id="empty-description">分类已建立，尚未收录实际案例。</p>
-            <div class="empty-actions">
-              <button
-                id="clear-filter"
-                type="button"
-                class="button secondary"
-                hidden
-              >
-                清除搜索</button
-              ><a class="button primary" href="CONTRIBUTING.md"
-                >贡献第一个案例 <span aria-hidden="true">↗</span></a
-              >
+          <div id="asset-results" role="tabpanel" tabindex="0">
+            <div id="cases" class="case-grid"></div>
+            <div id="empty" class="empty-state" hidden>
+              <div class="empty-symbol" aria-hidden="true">
+                <svg viewBox="0 0 48 48">
+                  <path d="M8 14h12l4 5h16v20H8z" />
+                  <path d="M8 24h32M21 30h6" />
+                </svg>
+              </div>
+              <span class="eyebrow">ROOM FOR THE NEXT IDEA</span>
+              <h3 id="empty-title">资产待沉淀</h3>
+              <p id="empty-description"></p>
+              <div class="empty-actions">
+                <button
+                  id="clear-filter"
+                  type="button"
+                  class="button secondary"
+                  hidden
+                >
+                  清除检索条件</button
+                ><a class="button primary" href="CONTRIBUTING.md"
+                  >参与资产沉淀 <span aria-hidden="true">↗</span></a
+                >
+              </div>
             </div>
           </div>
           <div class="catalog-note">
@@ -155,19 +163,34 @@
               <path d="m7 9 2 2 4-4" />
             </svg>
             <p>
-              每个案例标明实际交付状态。模拟能力、真实连接与待接入服务，在案例中分别说明。
+              全部分类、业务规格与关联材料均可直接浏览。运行入口的接入条件，以各实现说明为准。
             </p>
           </div>
         </section>
       </div>
       <footer class="site-footer">
-        <span>BYTEFOLK <span>/</span> WORKBENCH EXAMPLES</span>
-        <p>让真实需求，成为可复用的工作台。</p>
+        <span>BYTEFOLK <span>/</span> WORKBENCH ASSETS</span>
+        <p>让每一次实践，成为下一次的起点。</p>
         <a href="CONTRIBUTING.md"
-          >收录你的案例 <span aria-hidden="true">↗</span></a
+          >贡献案例资产 <span aria-hidden="true">↗</span></a
         >
       </footer>
     </main>
+    <dialog
+      id="asset-detail"
+      class="asset-detail"
+      aria-labelledby="detail-title"
+    >
+      <button
+        class="detail-close"
+        type="button"
+        data-close-detail
+        aria-label="关闭资产详情"
+      >
+        ×
+      </button>
+      <div id="detail-content"></div>
+    </dialog>
     <script type="module" src="catalog/app.mjs"></script>
   </body>
 </html>

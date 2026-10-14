@@ -1,213 +1,514 @@
 {
-  "version": 2,
+  "version": 3,
   "domains": [
     {
       "id": "crm",
       "serviceModel": "saas",
+      "groupId": "customer-revenue",
       "title": "客户与销售 CRM",
-      "summary": "客户、联系人、商机与销售跟进"
+      "summary": "客户、联系人、商机与销售跟进；聚焦成交前的关系和机会推进"
     },
     {
-      "id": "erp",
+      "id": "cpq",
       "serviceModel": "saas",
-      "title": "企业资源 ERP",
-      "summary": "订单、采购、库存与资源核算"
+      "groupId": "customer-revenue",
+      "title": "配置报价 CPQ",
+      "summary": "产品选配、报价版本、折扣授权与报价审批；报价获批后交接订单"
     },
     {
-      "id": "mes",
+      "id": "customer-success",
       "serviceModel": "saas",
-      "title": "制造执行 MES",
-      "summary": "工单、工序、在制品与产线执行"
+      "groupId": "customer-revenue",
+      "title": "客户成功",
+      "summary": "客户健康度、上线里程碑、价值回顾与续约风险；区别于被动服务工单"
     },
     {
-      "id": "wms",
+      "id": "partners",
       "serviceModel": "saas",
-      "title": "仓储管理 WMS",
-      "summary": "库位、出入库、盘点与拣配"
+      "groupId": "customer-revenue",
+      "title": "渠道与伙伴管理 PRM",
+      "summary": "伙伴准入、商机报备、联合销售与激励；区别于供应商采购关系"
     },
     {
-      "id": "scm",
+      "id": "subscription",
       "serviceModel": "saas",
-      "title": "供应链管理 SCM",
-      "summary": "供需计划、供应协同与交付协调"
-    },
-    {
-      "id": "hrm",
-      "serviceModel": "saas",
-      "title": "人力资源 HRM",
-      "summary": "员工、招聘、入职与绩效"
-    },
-    {
-      "id": "finance",
-      "serviceModel": "saas",
-      "title": "财务与费用",
-      "summary": "应收应付、费用与预算"
-    },
-    {
-      "id": "oa",
-      "serviceModel": "saas",
-      "title": "办公与审批 OA",
-      "summary": "审批单、通知与办公申请"
-    },
-    {
-      "id": "itsm",
-      "serviceModel": "saas",
-      "title": "IT 服务与运维 ITSM",
-      "summary": "服务单、IT 设备、事件与变更"
-    },
-    {
-      "id": "projects",
-      "serviceModel": "saas",
-      "title": "项目与研发协作",
-      "summary": "项目、任务、需求与交付协作"
-    },
-    {
-      "id": "analytics",
-      "serviceModel": "saas",
-      "title": "数据分析 BI",
-      "summary": "业务指标、报表、仪表盘与分析结果"
-    },
-    {
-      "id": "dam",
-      "serviceModel": "saas",
-      "title": "数字资产管理 DAM",
-      "summary": "人物、图片、视频与素材版本"
-    },
-    {
-      "id": "cms",
-      "serviceModel": "saas",
-      "title": "内容与知识管理 CMS",
-      "summary": "内容、知识条目与发布版本"
-    },
-    {
-      "id": "marketing",
-      "serviceModel": "saas",
-      "title": "营销与内容制作",
-      "summary": "活动、创意、渠道与制作任务"
-    },
-    {
-      "id": "commerce",
-      "serviceModel": "saas",
-      "title": "电商与零售",
-      "summary": "商品、门店、交易与售后"
+      "groupId": "customer-revenue",
+      "title": "订阅管理",
+      "summary": "订阅套餐、权益、续订、升降级与计费事件；收入确认归财务"
     },
     {
       "id": "service",
       "serviceModel": "saas",
+      "groupId": "customer-revenue",
       "title": "客户服务",
-      "summary": "服务请求、知识、反馈与工单"
+      "summary": "客户请求、问题分派、服务时限与解决反馈；上门履约交现场服务"
     },
     {
-      "id": "srm",
+      "id": "field-service",
       "serviceModel": "saas",
-      "title": "供应商关系 SRM",
-      "summary": "供应商准入、资质、寻源与绩效"
+      "groupId": "customer-revenue",
+      "title": "现场服务 FSM",
+      "summary": "客户现场派工、技师技能、备件与服务回执；区别于自有设备保养"
     },
     {
-      "id": "plm",
+      "id": "marketing",
       "serviceModel": "saas",
-      "title": "产品生命周期 PLM",
-      "summary": "产品定义、设计版本、工程变更与物料清单"
+      "groupId": "marketing-commerce",
+      "title": "营销与内容制作",
+      "summary": "活动计划、创意制作、渠道投放与线索归因；资产长期治理归 DAM"
     },
     {
-      "id": "qms",
+      "id": "commerce",
       "serviceModel": "saas",
-      "title": "质量管理 QMS",
-      "summary": "检验、质量异常、不合格品与纠正措施"
+      "groupId": "marketing-commerce",
+      "title": "电商与零售",
+      "summary": "线上店铺、门店交易、促销执行与交易售后；跨渠道履约归订单管理"
     },
     {
-      "id": "eam",
+      "id": "cdp",
       "serviceModel": "saas",
-      "title": "企业资产管理 EAM",
-      "summary": "设备台账、保养、维修与资产生命周期"
+      "groupId": "marketing-commerce",
+      "title": "客户数据与客群 CDP",
+      "summary": "营销身份合并、同意记录、客群圈选与触达激活；区别于销售跟进"
     },
     {
-      "id": "tms",
+      "id": "loyalty",
       "serviceModel": "saas",
-      "title": "运输管理 TMS",
-      "summary": "运单、承运商、运输调度与运费"
+      "groupId": "marketing-commerce",
+      "title": "会员与忠诚度",
+      "summary": "会员等级、积分账本、权益发放与核销；区别于付费订阅权益周期"
+    },
+    {
+      "id": "pim",
+      "serviceModel": "saas",
+      "groupId": "marketing-commerce",
+      "title": "商品信息管理 PIM",
+      "summary": "商品属性、渠道文案、语言版本与上架完整度；工程设计版本归 PLM"
+    },
+    {
+      "id": "pricing",
+      "serviceModel": "saas",
+      "groupId": "marketing-commerce",
+      "title": "价格与促销策略",
+      "summary": "价目表、渠道价格、促销规则与生效期；单笔报价审批归 CPQ"
+    },
+    {
+      "id": "order-management",
+      "serviceModel": "saas",
+      "groupId": "marketing-commerce",
+      "title": "订单管理 OMS",
+      "summary": "订单接收、可承诺量、分单履约、退换与异常协调；区别于仓内作业"
+    },
+    {
+      "id": "finance",
+      "serviceModel": "saas",
+      "groupId": "finance-control",
+      "title": "财务与费用",
+      "summary": "应收应付、结算核销与跨部门费用协同；专门报销流程归差旅费用"
+    },
+    {
+      "id": "expense",
+      "serviceModel": "saas",
+      "groupId": "finance-control",
+      "title": "差旅与费用管理",
+      "summary": "出差申请、费用凭证、标准校验、报销审批与付款交接"
+    },
+    {
+      "id": "treasury",
+      "serviceModel": "saas",
+      "groupId": "finance-control",
+      "title": "资金管理",
+      "summary": "银行账户、现金头寸、资金预测与付款计划；区别于业务应收应付"
+    },
+    {
+      "id": "tax",
+      "serviceModel": "saas",
+      "groupId": "finance-control",
+      "title": "税务管理",
+      "summary": "税种规则、税额核对、申报底稿与税务资料归档；区别于总账记账"
+    },
+    {
+      "id": "accounting",
+      "serviceModel": "saas",
+      "groupId": "finance-control",
+      "title": "会计与合并核算",
+      "summary": "会计凭证、总账、关账、内部抵销与合并报表"
+    },
+    {
+      "id": "epm",
+      "serviceModel": "saas",
+      "groupId": "finance-control",
+      "title": "预算与绩效计划 EPM",
+      "summary": "预算版本、滚动预测、经营目标与实际偏差；区别于历史报表分析"
+    },
+    {
+      "id": "revenue-management",
+      "serviceModel": "saas",
+      "groupId": "finance-control",
+      "title": "收入确认管理",
+      "summary": "履约义务、交易价格分摊、收入计划与确认记录；区别于订阅计费"
+    },
+    {
+      "id": "hrm",
+      "serviceModel": "saas",
+      "groupId": "people-learning",
+      "title": "人力资源 HRM",
+      "summary": "组织、岗位、员工主档与入转调离；招聘、薪酬和考勤由专门领域承接"
+    },
+    {
+      "id": "recruiting",
+      "serviceModel": "saas",
+      "groupId": "people-learning",
+      "title": "招聘管理 ATS",
+      "summary": "招聘需求、候选人、面试评价、录用与入职交接"
+    },
+    {
+      "id": "workforce",
+      "serviceModel": "saas",
+      "groupId": "people-learning",
+      "title": "劳动力与考勤管理 WFM",
+      "summary": "班次、排班、工时、考勤、休假与异常核对；薪酬核算独立"
+    },
+    {
+      "id": "payroll",
+      "serviceModel": "saas",
+      "groupId": "people-learning",
+      "title": "薪酬管理",
+      "summary": "薪资项目、核算周期、薪税扣款、工资单与发放复核"
+    },
+    {
+      "id": "talent",
+      "serviceModel": "saas",
+      "groupId": "people-learning",
+      "title": "人才与绩效发展",
+      "summary": "绩效周期、目标、能力盘点、继任计划与发展行动；区别于组织主档"
     },
     {
       "id": "lms",
       "serviceModel": "saas",
+      "groupId": "people-learning",
       "title": "学习与培训 LMS",
-      "summary": "课程、学习任务、培训记录与考核"
+      "summary": "课程、学习任务、培训记录、考试与到期复训"
+    },
+    {
+      "id": "scm",
+      "serviceModel": "saas",
+      "groupId": "supply-logistics",
+      "title": "供应链管理 SCM",
+      "summary": "跨供应、生产与交付的供需协调和异常处置；专门预测归需求计划"
+    },
+    {
+      "id": "srm",
+      "serviceModel": "saas",
+      "groupId": "supply-logistics",
+      "title": "供应商关系 SRM",
+      "summary": "供应商准入、资质、关系分层与绩效；采购订单执行归采购管理"
+    },
+    {
+      "id": "procurement",
+      "serviceModel": "saas",
+      "groupId": "supply-logistics",
+      "title": "采购管理",
+      "summary": "请购、询比价、采购订单、收货对账与采购支出控制"
+    },
+    {
+      "id": "inventory",
+      "serviceModel": "saas",
+      "groupId": "supply-logistics",
+      "title": "库存管理",
+      "summary": "物料库存账、批次、可用量、调拨与补货；库位拣配归 WMS"
+    },
+    {
+      "id": "wms",
+      "serviceModel": "saas",
+      "groupId": "supply-logistics",
+      "title": "仓储管理 WMS",
+      "summary": "库位、上架、拣选、包装、出入库与盘点作业"
+    },
+    {
+      "id": "tms",
+      "serviceModel": "saas",
+      "groupId": "supply-logistics",
+      "title": "运输管理 TMS",
+      "summary": "运单、承运商、运输调度、签收与运费；自有车辆保养归车队"
+    },
+    {
+      "id": "trade",
+      "serviceModel": "saas",
+      "groupId": "supply-logistics",
+      "title": "国际贸易管理 GTM",
+      "summary": "贸易单证、商品归类、报关协作与进出口限制检查"
+    },
+    {
+      "id": "demand-planning",
+      "serviceModel": "saas",
+      "groupId": "supply-logistics",
+      "title": "需求与补货计划",
+      "summary": "需求预测版本、促销影响、安全库存与补货建议；现场排程归 APS"
+    },
+    {
+      "id": "plm",
+      "serviceModel": "saas",
+      "groupId": "product-manufacturing",
+      "title": "产品生命周期 PLM",
+      "summary": "产品定义、设计版本、物料清单、工程变更与发布基线"
+    },
+    {
+      "id": "mes",
+      "serviceModel": "saas",
+      "groupId": "product-manufacturing",
+      "title": "制造执行 MES",
+      "summary": "工单、工序、在制品、工位物料和现场异常的执行追溯"
+    },
+    {
+      "id": "qms",
+      "serviceModel": "saas",
+      "groupId": "product-manufacturing",
+      "title": "质量管理 QMS",
+      "summary": "检验计划、不合格品、质量异常与纠正预防措施"
+    },
+    {
+      "id": "aps",
+      "serviceModel": "saas",
+      "groupId": "product-manufacturing",
+      "title": "高级计划与排程 APS",
+      "summary": "产能约束、工序顺序、资源日历与排程方案；实际报工归 MES"
+    },
+    {
+      "id": "ehs",
+      "serviceModel": "saas",
+      "groupId": "product-manufacturing",
+      "title": "环境健康与安全 EHS",
+      "summary": "危险源、作业许可、事故、隐患整改与职业健康记录"
+    },
+    {
+      "id": "laboratory",
+      "serviceModel": "saas",
+      "groupId": "product-manufacturing",
+      "title": "实验室管理 LIMS",
+      "summary": "样品接收、检测任务、仪器记录、结果复核与报告签发"
+    },
+    {
+      "id": "eam",
+      "serviceModel": "saas",
+      "groupId": "asset-facilities",
+      "title": "企业资产管理 EAM",
+      "summary": "自有设备台账、巡检、保养、维修与退役；数字内容资产归 DAM"
+    },
+    {
+      "id": "facilities",
+      "serviceModel": "saas",
+      "groupId": "asset-facilities",
+      "title": "设施与空间运营",
+      "summary": "办公空间、工位、设施报修、保洁和空间占用；租约归不动产"
+    },
+    {
+      "id": "fleet",
+      "serviceModel": "saas",
+      "groupId": "asset-facilities",
+      "title": "车队管理",
+      "summary": "自有车辆、驾驶员、用车、里程、维保与能耗；货运订单调度归 TMS"
+    },
+    {
+      "id": "real-estate",
+      "serviceModel": "saas",
+      "groupId": "asset-facilities",
+      "title": "不动产与租赁运营",
+      "summary": "房产、租约、租金、到期续租与租赁履约；日常设施服务独立"
+    },
+    {
+      "id": "dam",
+      "serviceModel": "saas",
+      "groupId": "content-collaboration",
+      "title": "数字资产管理 DAM",
+      "summary": "人物、图片、视频与素材版本、授权范围和复用；知识发布归 CMS"
+    },
+    {
+      "id": "cms",
+      "serviceModel": "saas",
+      "groupId": "content-collaboration",
+      "title": "内容与知识管理 CMS",
+      "summary": "内容条目、知识文章、审核、发布版本与过期复审"
+    },
+    {
+      "id": "oa",
+      "serviceModel": "saas",
+      "groupId": "content-collaboration",
+      "title": "办公与审批 OA",
+      "summary": "行政申请、审批、通知与办公服务；专业业务审批仍归对应领域"
+    },
+    {
+      "id": "projects",
+      "serviceModel": "saas",
+      "groupId": "content-collaboration",
+      "title": "项目与研发协作",
+      "summary": "单项目需求、任务、里程碑、风险与交付协作"
+    },
+    {
+      "id": "ppm",
+      "serviceModel": "saas",
+      "groupId": "content-collaboration",
+      "title": "项目组合管理 PPM",
+      "summary": "项目提案、优先级、组合预算、资源容量与收益跟踪"
+    },
+    {
+      "id": "meetings",
+      "serviceModel": "saas",
+      "groupId": "content-collaboration",
+      "title": "会议与行动协同",
+      "summary": "议题、会议纪要、决议、责任人和行动闭环；日程订阅是可选集成"
+    },
+    {
+      "id": "grc",
+      "serviceModel": "saas",
+      "groupId": "governance-legal",
+      "title": "治理风险与合规 GRC",
+      "summary": "风险登记、控制措施、合规义务与整改；独立审计取证归审计管理"
+    },
+    {
+      "id": "clm",
+      "serviceModel": "saas",
+      "groupId": "governance-legal",
+      "title": "合同生命周期 CLM",
+      "summary": "条款、合同版本、审签、履约义务与到期；财务结算归财务"
+    },
+    {
+      "id": "audit",
+      "serviceModel": "saas",
+      "groupId": "governance-legal",
+      "title": "审计管理",
+      "summary": "审计计划、抽样、工作底稿、发现与整改复核"
+    },
+    {
+      "id": "privacy",
+      "serviceModel": "saas",
+      "groupId": "governance-legal",
+      "title": "隐私运营管理",
+      "summary": "处理活动、主体请求、同意证据与保留删除任务；技术访问控制独立"
+    },
+    {
+      "id": "esg",
+      "serviceModel": "saas",
+      "groupId": "governance-legal",
+      "title": "可持续与 ESG 管理",
+      "summary": "可持续指标、排放活动数据、证据审核与披露；现场隐患归 EHS"
+    },
+    {
+      "id": "erp",
+      "serviceModel": "saas",
+      "groupId": "enterprise-it",
+      "title": "企业资源 ERP",
+      "summary": "跨订单、采购、库存与财务的资源协同；单一专业流程优先归专门领域"
+    },
+    {
+      "id": "itsm",
+      "serviceModel": "saas",
+      "groupId": "enterprise-it",
+      "title": "IT 服务与运维 ITSM",
+      "summary": "IT 服务请求、事件、问题、变更与配置关联；云资源控制归 IaaS"
+    },
+    {
+      "id": "analytics",
+      "serviceModel": "saas",
+      "groupId": "enterprise-it",
+      "title": "数据分析 BI",
+      "summary": "业务指标、报表、仪表盘与异常分析；数据采集治理平台归 PaaS"
+    },
+    {
+      "id": "mdm",
+      "serviceModel": "saas",
+      "groupId": "enterprise-it",
+      "title": "主数据管理 MDM",
+      "summary": "客户、物料等黄金记录、编码、匹配、审批与分发；区别于营销客群"
     },
     {
       "id": "app-platform",
       "serviceModel": "paas",
+      "groupId": "platform-capabilities",
       "title": "应用开发与运行平台",
       "summary": "应用构建、运行环境、发布与应用生命周期"
     },
     {
       "id": "dbaas",
       "serviceModel": "paas",
+      "groupId": "platform-capabilities",
       "title": "数据库服务 DBaaS",
       "summary": "托管数据库实例、连接、容量与数据库运维"
     },
     {
       "id": "baas",
       "serviceModel": "paas",
+      "groupId": "platform-capabilities",
       "title": "后端服务 BaaS",
       "summary": "应用身份、数据接口、函数与后端能力"
     },
     {
       "id": "integration",
       "serviceModel": "paas",
+      "groupId": "platform-capabilities",
       "title": "集成与接口平台",
       "summary": "连接器、接口、事件与系统间数据交换"
     },
     {
       "id": "low-code",
       "serviceModel": "paas",
+      "groupId": "platform-capabilities",
       "title": "低代码开发平台",
       "summary": "表单、数据模型、流程与应用编排"
     },
     {
       "id": "devops",
       "serviceModel": "paas",
+      "groupId": "platform-capabilities",
       "title": "DevOps 与交付平台",
       "summary": "代码集成、构建流水线、制品与发布环境"
     },
     {
       "id": "ai-platform",
       "serviceModel": "paas",
+      "groupId": "platform-capabilities",
       "title": "AI 开发平台",
       "summary": "模型接入、推理服务、评测与 AI 应用开发"
     },
     {
       "id": "data-platform",
       "serviceModel": "paas",
+      "groupId": "platform-capabilities",
       "title": "数据工程平台",
       "summary": "数据采集、加工、编排、目录与治理"
     },
     {
       "id": "compute",
       "serviceModel": "iaas",
+      "groupId": "infrastructure-resources",
       "title": "计算资源",
       "summary": "虚拟机、计算规格、镜像与资源配额"
     },
     {
       "id": "storage",
       "serviceModel": "iaas",
+      "groupId": "infrastructure-resources",
       "title": "存储资源",
       "summary": "对象、块与文件存储的容量、访问与生命周期"
     },
     {
       "id": "networking",
       "serviceModel": "iaas",
+      "groupId": "infrastructure-resources",
       "title": "网络资源",
       "summary": "虚拟网络、子网、负载均衡与网络连接"
     },
     {
       "id": "containers",
       "serviceModel": "iaas",
+      "groupId": "infrastructure-resources",
       "title": "容器与集群基础设施",
       "summary": "容器集群、节点、命名空间与基础资源配额"
     },
     {
       "id": "backup",
       "serviceModel": "iaas",
+      "groupId": "infrastructure-resources",
       "title": "备份与灾难恢复",
       "summary": "备份策略、恢复点、恢复任务与灾备演练"
     }

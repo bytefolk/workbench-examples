@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "id": "REPLACE_CASE_ID",
   "title": "REPLACE_TITLE",
   "summary": "REPLACE_SUMMARY",
@@ -36,5 +36,9 @@
       "description": "REPLACE_CURRENT_BEHAVIOR"
     }
   ],
-  "serviceModel": "REPLACE_SERVICE_MODEL"
+  "serviceModel": "REPLACE_SERVICE_MODEL",
+  "caseKind": "reference-implementation",
+  "blueprintId": "REPLACE_BLUEPRINT_ID",
+  "variantId": "REPLACE_VARIANT_ID",
+  "evidence": []
 }
