@@ -1,0 +1,24 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.env*
+!.env.example
+work/
+
+.local/
+
+# Never commit local credentials, client assets or generated output.
+uploads/
+generated/
+recordings/
+client-assets/
+private/
+outputs/
+*.xlsx
+*.xls
+*.docx
+*.pptx
+*.pdf
+*.pem
+*.key
+*.log

@@ -291,6 +291,11 @@ export async function validateRepository() {
   await validateDocument(groups, "schemas/domain-groups.schema.json");
   await validateDocument(blueprints, "schemas/blueprints.schema.json");
   await validateDocument(variants, "schemas/variants.schema.json");
+  // 只验证参考交换包外形；空模板不代表存在可执行导入能力。
+  await validateDocument(
+    await json("templates/ledger-package/empty.json"),
+    "schemas/ledger-package.schema.json",
+  );
   const { serviceModelIds, domainsById } = validateTaxonomy(
     serviceModels,
     domains,

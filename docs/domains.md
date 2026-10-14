@@ -15,7 +15,7 @@ SaaS、PaaS、IaaS 的概念依据应用、平台与基础设施的职责划分�
 | [domains.json](../catalog/domains.json)               | 73 个领域，版本 3                             | 定义工作台的主要业务对象与边界               |
 | [blueprints.json](../catalog/blueprints.json)         | 22 个标准主干                                 | 保存角色、实体、流程、页面和扩展点的参考设计 |
 | [variants.json](../catalog/variants.json)             | 44 个场景变体，每个主干 2 个                  | 说明行业或业务情境带来的具体差异             |
-| [cases.json](../catalog/cases.json)                   | 2 个实际代码案例                              | 索引实现、交付状态和运行证据                 |
+| [cases.json](../catalog/cases.json)                   | 3 个实际代码案例                              | 索引实现、交付状态和运行证据                 |
 
 业务族 ID 与领域 ID 全局唯一；每个领域只归属一个服务模型和一个业务族，二者的服务模型必须一致。案例路径仍为 `examples/<serviceModel>/<domain>/<case>/`；业务族与复用关系通过目录数据表达，不增加重复目录层。主干和变体不自带运行声明，关系和新增方式见 [案例复用资产](case-assets.md)。
 
@@ -219,9 +219,10 @@ SaaS、PaaS、IaaS 的概念依据应用、平台与基础设施的职责划分�
 | 实际案例                                                                    | 主干 → 变体                                                  | 当前实现边界                                                                                                      |
 | --------------------------------------------------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
 | [Persona Studio](../examples/saas/dam/character-material-library/README.md) | `dam-content-assets` → `digital-human-content-production`    | `saas/dam` 的本地原型；人物素材、制作与审核流程可体验，生成能力以案例中的模拟声明为准                             |
+| [MUSE 缪思](../examples/saas/dam/brand-digital-human-studio/README.md)      | `dam-content-assets` → `digital-human-content-production`    | `saas/dam` 的品牌数字人原型；公开模拟资产与制作审核流程，真实模型账号及效果未验证                                 |
 | [工厂运营工作台](../examples/saas/mes/factory-operations/README.md)         | `mes-production-operations` → `garment-workshop-consumables` | `saas/mes` 的车间耗材与断针上报、审批配送、回收追溯实现；销售拜访为 CRM 扩展，不代表完整 MES 排程、报工或库存系统 |
 
-这两个实现的交付状态与已连接能力以各自 manifest 和证据文件为准。标准主干的设计范围可以大于某个案例的实现范围，关联主干不会自动授予功能或成熟度。尚无实现的分类保留可浏览的参考设计或空状态，不创建空案例目录。
+这三个实现的交付状态与已连接能力以各自 manifest 和证据文件为准。标准主干的设计范围可以大于某个案例的实现范围，关联主干不会自动授予功能或成熟度。尚无实现的分类保留可浏览的参考设计或空状态，不创建空案例目录。
 
 ## 依据与来源范围
 

@@ -1,0 +1,319 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "台账交换包 v1（proposal）",
+  "description": "只约束交换包外形；不代表已有导入接口，也不能替代 dataset registry 的表结构、业务、引用和提交校验。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "packageKind",
+    "packageId",
+    "datasetContract",
+    "dataRevision",
+    "metadata",
+    "tables",
+    "assets",
+    "exportScope"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "packageKind": {
+      "enum": ["template", "snapshot"]
+    },
+    "packageId": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "maxLength": 256
+    },
+    "datasetContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "dataRevision": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "description": "导出源数据集的一致快照版本；目标提交使用独立的 expectedRevision。空模板为 null。"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contentOrigin", "storage"],
+      "properties": {
+        "contentOrigin": {
+          "enum": ["synthetic", "user-imported", "mixed"]
+        },
+        "storage": {
+          "enum": ["local", "shared"]
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "exportedAt": {
+          "type": "string",
+          "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])T([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(\\.\\d{1,9})?Z$",
+          "description": "UTC 时间戳的结构检查；实际日历日期仍须由业务校验器严格验证，禁止自动纠正无效日期。"
+        }
+      }
+    },
+    "tables": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9-]*$",
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/row"
+        }
+      },
+      "description": "逻辑表名与字段由 datasetContract 指定的注册契约定义；不存在的表与显式空数组含义不同。"
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/asset"
+      },
+      "description": "随包引用的资产清单，不是清空资产库的指令，也不包含文件正文。"
+    },
+    "exportScope": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/definitions/exportScope"
+        }
+      ],
+      "description": "导出完整性仅针对声明的表；full 必须包含源数据集这些表的全部业务行，partial 不能作为 replace 输入。模板为 null。"
+    }
+  },
+  "definitions": {
+    "recognition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "reviewStatus", "sourceAssetIds"],
+      "properties": {
+        "mode": {
+          "enum": ["mock", "connected"]
+        },
+        "reviewStatus": {
+          "enum": ["unreviewed", "reviewed"]
+        },
+        "sourceAssetIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S",
+            "maxLength": 256
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contentOrigin"],
+      "properties": {
+        "contentOrigin": {
+          "enum": ["synthetic", "user-imported", "mixed"]
+        },
+        "recognition": {
+          "$ref": "#/definitions/recognition"
+        }
+      }
+    },
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "data", "provenance"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S",
+          "maxLength": 256
+        },
+        "data": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "additionalProperties": true,
+          "description": "业务字段必须通过对应表的独立 schema 和最终候选库校验；本层允许字段不等于服务端可接受任意字段。"
+        },
+        "provenance": {
+          "$ref": "#/definitions/provenance"
+        }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "mediaType", "size", "sha256", "reference"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S",
+          "maxLength": 256
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "mediaType": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9!#$&^_.+-]*/[a-z0-9][a-z0-9!#$&^_.+-]*$"
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "reference": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["storeId", "objectId"],
+          "properties": {
+            "storeId": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S",
+              "maxLength": 256
+            },
+            "objectId": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S",
+              "maxLength": 256
+            }
+          },
+          "description": "资产服务稳定标识；不能填临时签名 URL。接收端需验证可读性或完成迁移映射。"
+        }
+      }
+    },
+    "exportScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["completeness", "tables"],
+      "properties": {
+        "completeness": {
+          "enum": ["full", "partial"]
+        },
+        "tables": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "packageKind": {
+            "const": "template"
+          }
+        },
+        "required": ["packageKind"]
+      },
+      "then": {
+        "properties": {
+          "dataRevision": {
+            "type": "null"
+          },
+          "tables": {
+            "type": "object",
+            "maxProperties": 0
+          },
+          "assets": {
+            "type": "array",
+            "maxItems": 0
+          },
+          "exportScope": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "packageKind": {
+            "const": "snapshot"
+          }
+        },
+        "required": ["packageKind"]
+      },
+      "then": {
+        "properties": {
+          "dataRevision": {
+            "type": "string",
+            "minLength": 1
+          },
+          "datasetContract": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "not": {
+                  "const": "unassigned"
+                }
+              }
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "required": ["exportedAt"],
+            "properties": {
+              "exportedAt": {
+                "type": "string",
+                "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])T([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(\\.\\d{1,9})?Z$",
+                "description": "UTC 时间戳的结构检查；实际日历日期仍须由业务校验器严格验证，禁止自动纠正无效日期。"
+              }
+            }
+          },
+          "tables": {
+            "type": "object",
+            "minProperties": 1
+          },
+          "exportScope": {
+            "$ref": "#/definitions/exportScope"
+          }
+        }
+      }
+    }
+  ]
+}

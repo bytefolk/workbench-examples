@@ -22,7 +22,8 @@
     "persona:dev": "npm run dev --workspace persona-studio-demo",
     "factory:dev": "npm run dev --workspace factory-operations-workbench",
     "check": "npm run format:check && npm run build && npm run validate && npm test && npm run test:cases",
-    "demo": "npm run build && node scripts/serve.mjs"
+    "demo": "npm run build && node scripts/serve.mjs",
+    "muse:dev": "npm run dev --workspace muse-digital-studio"
   },
   "devDependencies": {
     "@playwright/test": "1.64.0",

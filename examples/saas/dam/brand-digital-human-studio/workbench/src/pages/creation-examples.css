@@ -1,0 +1,45 @@
+.preset-actions {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.example-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.example-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #74816a;
+  font-size: 11px;
+  min-width: 0;
+}
+.example-select select {
+  max-width: 280px;
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: white;
+  color: #3e493b;
+  font: inherit;
+}
+.example-hint {
+  margin: 10px 0 16px;
+  font-size: 11px;
+  line-height: 1.7;
+  color: #7b856f;
+}
+@media (max-width: 650px) {
+  .example-controls,
+  .example-select {
+    width: 100%;
+  }
+  .example-select select {
+    flex: 1;
+    max-width: 100%;
+  }
+}

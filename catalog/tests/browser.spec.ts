@@ -45,7 +45,7 @@ async function noOverflow(page: Page) {
     .toBe(true);
 }
 
-test("默认资产库无登录即可浏览，按真实类型统计60分类22主干44变体2参考实现0项目", async ({
+test("默认资产库无登录即可浏览，按真实类型统计60分类22主干44变体3参考实现0项目", async ({
   page,
 }) => {
   await page.goto("/");
@@ -54,7 +54,7 @@ test("默认资产库无登录即可浏览，按真实类型统计60分类22主�
     domains: 60,
     blueprints: 22,
     variants: 44,
-    "reference-implementation": 2,
+    "reference-implementation": 3,
     "project-case": 0,
   };
   for (const [key, count] of Object.entries(counts))
@@ -325,14 +325,14 @@ test("390像素手机下分组、主干、变体详情与长搜索均无横向�
   await noOverflow(page);
 });
 
-test("两个参考实现保留旧运行入口，规格与证据无需进入业务登录", async ({
+test("三个参考实现保留运行入口，规格与证据无需进入业务登录", async ({
   page,
 }) => {
   await page.goto("/?serviceModel=saas&type=reference-implementation");
-  await expect(results(page).locator("[data-case]")).toHaveCount(2);
+  await expect(results(page).locator("[data-case]")).toHaveCount(3);
   await expect(
     results(page).getByText("参考实现", { exact: true }),
-  ).toHaveCount(2);
+  ).toHaveCount(3);
   const factoryLink = factory(page).getByRole("link", { name: "体验工作台" });
   await expect(factoryLink).toHaveAttribute(
     "href",
@@ -353,6 +353,18 @@ test("两个参考实现保留旧运行入口，规格与证据无需进入业�
   await personaLink.click();
   await expect(page).toHaveTitle("本色 · Persona Studio");
   await expect(page.locator("#root")).toContainText("人物");
+  await page.goto("/?serviceModel=saas&type=reference-implementation");
+  const museLink = results(page)
+    .locator('[data-case="brand-digital-human-studio"]')
+    .getByRole("link", { name: "体验工作台" });
+  await expect(museLink).toHaveAttribute(
+    "href",
+    "/examples/saas/dam/brand-digital-human-studio/workbench/dist/index.html",
+  );
+  await museLink.click();
+  await expect(
+    page.getByRole("button", { name: "登录工作台", exact: true }),
+  ).toBeVisible();
 });
 
 test("关系目录加载失败可以重试，单个实现manifest失败仍可浏览规格", async ({
