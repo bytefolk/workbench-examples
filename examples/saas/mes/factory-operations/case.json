@@ -68,8 +68,8 @@
     {
       "id": "ledger-exchange",
       "title": "同工作区整包交换",
-      "mode": "local",
-      "description": "版本化快照、字段与最终候选库校验、删除影响预览及原子提交适配；仅同工作区恢复，资产正文留在原平台。新交换迁移未在此前 QA 云项目应用，验证范围见证据。"
+      "mode": "connected",
+      "description": "个人试用 Supabase 已部署交换迁移并通过 8 组云端回滚事务与权限检查，所有者私有试用站已发布。首次真实用户注册后的云端 UI 验收待完成；资产正文留原平台，其他提供方需独立接入。"
     },
     {
       "id": "mock-ledger-recognition",

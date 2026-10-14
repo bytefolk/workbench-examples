@@ -75,7 +75,7 @@ VITE_API_BASE_URL=https://your-platform.example/api/workbench
 
 ## JSON 与拍照台账
 
-新增交换功能提供本地代码、服务端迁移和测试；本轮没有应用到此前 QA 云项目。部署者需先应用交换迁移并完成自己的验收，旧项目不会自动获得接口。详见 [集成说明](integrations.md) 与 [验证记录](evidence/verification.md)。
+个人试用所选 Supabase 项目已应用交换迁移，并完成 8 组云端事务与权限验证；首次真实用户注册及云端 UI 验收尚未进行。其他部署仍需应用迁移并独立验证，选择提供方不会自动部署接口。详见 [集成说明](integrations.md) 与 [验证记录](evidence/verification.md)。
 
 1. 所有者在“数据接入”点击“导出完整快照”，得到当前工作区四张业务表及资产清单。先保存当前快照，再处理待恢复的文件。
 2. “下载格式模板”只说明包结构，不能提交。填写数据时以当前导出包为基准，对照 [字段与流程约束](data-model.md)，保留工厂 ID、完整事件、历史操作者、来源和资产引用。
@@ -87,3 +87,11 @@ VITE_API_BASE_URL=https://your-platform.example/api/workbench
 ## 规格与限制
 
 详见 [需求](requirements.md)、[流程](workflows.md)、[数据模型](data-model.md)、[集成](integrations.md)、[验收](acceptance.md) 和 [验证记录](evidence/verification.md)。公开夹具均为合成输入；实际服务为空时显示空状态。当前没有离线写入队列、跨服务数据迁移、库存扣减或正式客户验收。
+
+## 个人试用部署进度（2026-10-15）
+
+现有 Supabase 项目已准备好新交换能力，迁移版本为 `20261014171026`。云端验证采用合成输入并在事务中回滚；结束后业务数据、Storage 对象和应用用户均为零。首次应用账号由使用者自行注册，尚未记录真实用户的云端 UI 验收。
+
+Sites 所有者私有试用站已发布，Supabase 已连接；发布工具返回 `succeeded`。邮箱确认保持开启，默认回跳地址与精确重定向允许列表均指向在线工厂入口，默认和显式目标的 303 回跳复测均匹配。真实用户注册后的 UI 验收待完成。
+
+本机静态预览已验收；当前网络访问线上站点被 Cloudflare 托管边缘拦截，未进入工作台，因此不声明在线 UI 已验收。公开文档不保存私有地址、项目标识或密钥。案例保持 `integrated`、`customerConfirmed: false`；Supabase 是本次个人部署选择，其他用户仍可采用自己的提供方。
