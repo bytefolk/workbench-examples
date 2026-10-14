@@ -37,6 +37,12 @@
   },
   "capabilities": [
     {
+      "id": "demo-login",
+      "title": "两身份演示登录",
+      "mode": "mock",
+      "description": "虚构公共账号的前端登录/退出与刷新保持，当前标签页8小时或记住7天；桌面/手机软件检查通过。两身份共享工作空间，无正式鉴权、RBAC或API保护；退出不调用供应商清除或任务取消接口，真实Key配置未验收。"
+    },
+    {
       "id": "asset-library",
       "title": "图片资产与候选确认",
       "mode": "local",

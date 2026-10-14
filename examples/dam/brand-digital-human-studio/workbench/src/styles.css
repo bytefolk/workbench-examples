@@ -281,6 +281,31 @@ button:hover:not(:disabled) {
 .demo-indicator svg {
   color: #8a9488;
 }
+.session-logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: var(--green);
+  font-size: 11px;
+}
+.session-logout:hover {
+  background: var(--soft);
+}
+@media (max-width: 650px) {
+  .session-logout {
+    width: 40px;
+    padding: 0;
+    flex-shrink: 0;
+  }
+  .session-logout span {
+    display: none;
+  }
+}
 .main-shell main {
   width: 100%;
   max-width: 1600px;

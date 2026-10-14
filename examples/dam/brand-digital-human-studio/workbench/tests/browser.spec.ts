@@ -1,6 +1,98 @@
 import { test, expect } from "@playwright/test";
 const entry =
   "/examples/dam/brand-digital-human-studio/workbench/dist/index.html";
+async function signIn(page: import("@playwright/test").Page) {
+  await page.getByLabel("演示邮箱", { exact: true }).fill("admin@muse.demo");
+  await page.getByLabel("演示密码", { exact: true }).fill("Muse2026!");
+  await page.getByRole("button", { name: "登录工作台", exact: true }).click();
+}
+
+test("demo login rejects wrong credentials, preserves deep links and sessions, and signs out without losing the workspace", async ({
+  page,
+}) => {
+  const calls: string[] = [];
+  page.on("request", (r) => {
+    if (new URL(r.url()).pathname.includes("/api/")) calls.push(r.url());
+  });
+  await page.goto(entry + "#create");
+  await page.getByLabel("演示邮箱", { exact: true }).fill("admin@muse.demo");
+  await page
+    .getByLabel("演示密码", { exact: true })
+    .fill("incorrect-demo-password");
+  await page.getByRole("button", { name: "登录工作台", exact: true }).click();
+  await expect(
+    page.getByText("演示邮箱或密码不正确，请使用下方示例账号。", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  expect(calls).toEqual([]);
+  await page
+    .getByRole("button", { name: "填入创作成员账号", exact: true })
+    .click();
+  await page.getByRole("button", { name: "登录工作台", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "视频创作", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.locator(".profile").getByText("创作成员", { exact: true }),
+  ).toBeVisible();
+  await page.getByLabel("创作名称", { exact: true }).fill("登录后保留的草稿");
+  const saved = await page.evaluate(() => ({
+    auth: sessionStorage.getItem("bytefolk-muse-demo-auth-v1"),
+    persistent: localStorage.getItem("bytefolk-muse-demo-auth-v1"),
+  }));
+  expect(saved.auth).not.toContain("Muse2026!");
+  expect(saved.persistent).toBeNull();
+  const session = JSON.parse(saved.auth!);
+  expect(session.expiresAt - session.issuedAt).toBe(8 * 60 * 60 * 1000);
+  await page.reload();
+  await expect(page.getByLabel("创作名称", { exact: true })).toHaveValue(
+    "登录后保留的草稿",
+  );
+  await page.getByRole("button", { name: "退出登录", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "登录工作台", exact: true }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(() =>
+      sessionStorage.getItem("bytefolk-muse-demo-auth-v1"),
+    ),
+  ).toBeNull();
+  await page
+    .getByRole("button", { name: "填入管理员账号", exact: true })
+    .click();
+  await page.getByLabel("在此浏览器记住我 7 天").check();
+  await page.getByRole("button", { name: "登录工作台", exact: true }).click();
+  await expect(page.getByLabel("创作名称", { exact: true })).toHaveValue(
+    "登录后保留的草稿",
+  );
+  const remembered = JSON.parse(
+    (await page.evaluate(() =>
+      localStorage.getItem("bytefolk-muse-demo-auth-v1"),
+    ))!,
+  );
+  expect(remembered.expiresAt - remembered.issuedAt).toBe(
+    7 * 24 * 60 * 60 * 1000,
+  );
+  remembered.issuedAt -= 8 * 24 * 60 * 60 * 1000;
+  remembered.expiresAt -= 8 * 24 * 60 * 60 * 1000;
+  await page.evaluate(
+    (record) =>
+      localStorage.setItem(
+        "bytefolk-muse-demo-auth-v1",
+        JSON.stringify(record),
+      ),
+    remembered,
+  );
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "登录工作台", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("演示登录已过期或失效，请重新登录。", { exact: true }),
+  ).toBeVisible();
+  expect(calls).toEqual([]);
+});
 test("new Wan and voice modes stay offline in the catalog", async ({
   page,
 }) => {
@@ -9,6 +101,7 @@ test("new Wan and voice modes stay offline in the catalog", async ({
     if (new URL(r.url()).pathname.includes("/api/")) apiCalls.push(r.url());
   });
   await page.goto(entry + "#create");
+  await signIn(page);
   await page.getByRole("button", { name: /阿里云万相真实 API/ }).click();
   await expect(page.getByLabel("万相视频模型").locator("option")).toHaveCount(
     3,
@@ -60,6 +153,7 @@ test("catalog retains both entries; MUSE assets are scoped and live API stays di
   await expect(page).toHaveURL(
     new RegExp("brand-digital-human-studio/workbench/dist/"),
   );
+  await signIn(page);
   await expect(
     page.getByRole("heading", { name: "品牌资产库", exact: true }),
   ).toBeVisible();
@@ -85,6 +179,7 @@ test("candidate confirmation and mock generation produce playable sample and reu
 }) => {
   test.setTimeout(45000);
   await page.goto(entry + "#create");
+  await signIn(page);
   await page.getByLabel("创作名称", { exact: true }).fill("目录回归样片");
   await page
     .getByLabel(/^创作需求/)
@@ -131,6 +226,7 @@ test("candidate confirmation and mock generation produce playable sample and reu
 test("mobile assets and navigation remain available", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(entry);
+  await signIn(page);
   await expect(
     page.getByRole("heading", { name: "品牌资产库", exact: true }),
   ).toBeVisible();

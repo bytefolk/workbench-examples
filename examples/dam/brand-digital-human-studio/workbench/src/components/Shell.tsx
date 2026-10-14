@@ -8,10 +8,12 @@ import {
   RotateCcw,
   Menu,
   X,
+  LogOut,
 } from "lucide-react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { Page } from "../types";
+import type { DemoUser } from "../demoAuth";
 const nav = [
   { id: "assets", label: "资产库", icon: FolderOpen },
   { id: "create", label: "视频创作", icon: Clapperboard },
@@ -26,6 +28,8 @@ export function Shell({
   onHelp,
   onReset,
   connected,
+  user,
+  onLogout,
 }: {
   page: Page;
   onNavigate: (page: Page) => void;
@@ -34,6 +38,8 @@ export function Shell({
   onHelp: () => void;
   onReset: () => void;
   connected?: boolean;
+  user: DemoUser;
+  onLogout: () => void;
 }) {
   const [mobile, setMobile] = useState(false);
   return (
@@ -85,10 +91,10 @@ export function Shell({
             重置演示数据
           </button>
           <div className="profile">
-            <span className="avatar">林</span>
+            <span className="avatar">{user.name.slice(0, 1)}</span>
             <div>
-              <strong>林知夏</strong>
-              <small>品牌管理员</small>
+              <strong>{user.name}</strong>
+              <small>{user.role}</small>
             </div>
             <span className="profile-dot" />
           </div>
@@ -118,6 +124,15 @@ export function Shell({
             <i />
             {connected ? "API 已配置" : "技术验证 Demo"}
             <Info size={14} />
+          </button>
+          <button
+            className="session-logout"
+            onClick={onLogout}
+            aria-label="退出登录"
+            title={`退出${user.name}的演示登录`}
+          >
+            <LogOut size={17} />
+            <span>退出</span>
           </button>
         </header>
         <main key={page}>{children}</main>

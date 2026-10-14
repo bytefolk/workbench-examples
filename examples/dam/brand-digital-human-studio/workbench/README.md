@@ -4,6 +4,10 @@
 
 根目录 `npm run demo` 的 4173 案例入口始终只运行免费模拟，无代理依赖。配置、真实调用步骤、演示与重置方法见 [案例说明](../README.md)。
 
+进入工作台先使用虚构公共演示账号 `admin@muse.demo`（品牌管理员）或 `creator@muse.demo`（创作成员），密码均为 `Muse2026!`。默认sessionStorage当前标签页8小时；勾选「在此浏览器记住我 7 天」使用localStorage最长7天，刷新保持，到期重新登录。登录命名空间为 `bytefolk-muse-demo-auth-v1`，输入密码不持久化。
+
+演示身份不提供正式鉴权、RBAC或API保护；两账号使用同一浏览器工作空间。退出只清登录态，不清工作空间和供应商配置/Key，不中止云任务。2026-10-14桌面/手机登录检查和仓库5项浏览器回归通过；退出未调用清除/取消接口，没有用客户真实Key验证供应商配置恢复，见[验证记录](../evidence/verification.md)。
+
 独立预览需要两个终端：`npm run api --workspace muse-digital-studio` 与 `npm run preview --workspace muse-digital-studio`；提前构建工作台。 `.env` 放在本工作台目录，禁止使用 `VITE_` 密钥或提交运行状态。
 
 `npm test --workspace muse-digital-studio` 使用模拟供应商响应验证参数、安全边界和状态，不证明真实账号、扣费或生成质量。

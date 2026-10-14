@@ -9,6 +9,7 @@ import { Outputs, Preview } from "./pages/Outputs";
 import { useStudio, isActive } from "./store";
 import { createSeed, emptyDraft } from "./data";
 import type { Asset, Page, Task } from "./types";
+import type { DemoUser } from "./demoAuth";
 import {
   api,
   providerApiRoot,
@@ -21,7 +22,13 @@ const route = (): Page =>
   pages.includes(location.hash.slice(1))
     ? (location.hash.slice(1) as Page)
     : "assets";
-export default function App() {
+export default function App({
+  user,
+  onLogout,
+}: {
+  user: DemoUser;
+  onLogout: () => void;
+}) {
   const { state, update, now, storageError } = useStudio();
   const [page, setPage] = useState<Page>(route);
   const [toast, setToast] = useState("");
@@ -231,6 +238,8 @@ export default function App() {
   return (
     <>
       <Shell
+        user={user}
+        onLogout={onLogout}
         page={page}
         onNavigate={navigate}
         activeCount={state.tasks.filter(isActive).length}
