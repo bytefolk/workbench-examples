@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(fileURLToPath(new URL("../", import.meta.url)));
 const port = Number(process.env.PORT || 4173);
 const types = {
+  ".mp4": "video/mp4",
   ".png": "image/png",
   ".jpg": "image/jpeg",
   ".ttf": "font/ttf",

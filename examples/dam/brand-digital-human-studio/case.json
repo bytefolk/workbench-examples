@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "id": "brand-digital-human-studio",
+  "title": "MUSE 缪思 · 品牌数字人技术验证工作台",
+  "summary": "用虚构素材演示资产、视频、任务与审核复用，提供阿里云万相、声线复刻/TTS/对口型及Higgsfield等本机适配代码，真实效果待验证。",
+  "domain": "dam",
+  "tags": [
+    "marketing",
+    "digital-human",
+    "video-generation",
+    "higgsfield",
+    "aliyun",
+    "voice-cloning"
+  ],
+  "status": "prototype",
+  "source": {
+    "date": "2026-10-14",
+    "kind": "business-discussion",
+    "summary": "从品牌内容制作需求抽象为公开技术验证案例，仅收录虚构素材及示意样片。客户身份、对话、真实素材与成片、报价、凭据及任务记录不发布；公开版本不进行真实模型调用，客户效果未验收。",
+    "customerConfirmed": false
+  },
+  "dataMode": "synthetic",
+  "deliverables": {
+    "overview": "README.md",
+    "requirements": "requirements.md",
+    "workflows": "workflows.md",
+    "dataModel": "data-model.md",
+    "integrations": "integrations.md",
+    "acceptance": "acceptance.md",
+    "evidence": "evidence/verification.md"
+  },
+  "runtime": {
+    "mode": "application",
+    "command": "npm run demo",
+    "entry": "workbench/dist/index.html",
+    "reset": "仅清本案例浏览器记录，不取消云任务或删除人物/声线。"
+  },
+  "capabilities": [
+    {
+      "id": "demo-login",
+      "title": "两身份演示登录",
+      "mode": "mock",
+      "description": "虚构公共账号的前端登录/退出与刷新保持，当前标签页8小时或记住7天；桌面/手机软件检查通过。两身份共享工作空间，无正式鉴权、RBAC或API保护；退出不调用供应商清除或任务取消接口，真实Key配置未验收。"
+    },
+    {
+      "id": "asset-library",
+      "title": "图片资产与候选确认",
+      "mode": "local",
+      "description": "分类、检索、收藏、单张图片上传和规则候选确认；当前浏览器存储，不是企业共享库。"
+    },
+    {
+      "id": "generation-workflow",
+      "title": "模拟任务与示意媒体",
+      "mode": "mock",
+      "description": "模拟生成约22秒完成，输出内置6秒无声动态样片，没有AI表演或声音克隆。"
+    },
+    {
+      "id": "outputs",
+      "title": "预览审核与配置复用",
+      "mode": "local",
+      "description": "媒体预览下载、审核收藏、JSON导出复用；真实结果封面读取视频帧，报错摘要/详情，不上传真实成片。当前浏览器和本机文件，非企业永久共享归档。"
+    },
+    {
+      "id": "higgsfield-adapter",
+      "title": "Higgsfield真实接口适配代码",
+      "mode": "unavailable",
+      "description": "独立运行可配置本机代理调用Soul ID v2、Soul 2、Seedance 2.0和Kling O3；只有模拟响应软件测试，未取得真实账号回执，不能标connected。目录入口不调用代理。"
+    },
+    {
+      "id": "qwen-adapter",
+      "title": "Qwen语义解析适配代码",
+      "mode": "unavailable",
+      "description": "独立运行可配置Qwen的JSON解析；未验证真实账号，目录默认免费规则检索。"
+    },
+    {
+      "id": "voice-lipsync",
+      "title": "克隆声音与口型",
+      "mode": "unavailable",
+      "description": "独立入口已有阿里云录音复刻、人物绑定、新台词TTS及图片音频对口型适配和模拟响应测试；真实账号与声线口型质量未验证，保持unavailable。"
+    },
+    {
+      "id": "full-body-and-products",
+      "title": "全身动作与商品细节",
+      "mode": "unavailable",
+      "description": "接口代码提供验证路径，无客户样片合格证据；零漂移、商品零误差和私有模型导出不承诺。"
+    },
+    {
+      "id": "wan-adapter",
+      "title": "阿里云万相视频适配代码",
+      "mode": "unavailable",
+      "description": "页面支持官方/兼容视频网关协议、Base URL及模型别名；单图视频、异步查询、渠道拒绝/待核对与原结果归档。公开仓库只有隔离模拟响应证据，真实账号及质量需用户验证，目录不调用API。"
+    },
+    {
+      "id": "audio-library",
+      "title": "本机录音与语音资产",
+      "mode": "local",
+      "description": "独立入口上传有效WAV/MP3录音，按会话保存文件、试听及人物声线映射；目录不访问代理，非企业共享。"
+    },
+    {
+      "id": "xiaoyunque-adapter",
+      "title": "小云雀可选CLI适配",
+      "mode": "unavailable",
+      "description": "官方CLI1.0.38视频适配、查询与本机下载代码，默认关闭；真实授权与调用未验证。"
+    },
+    {
+      "id": "seedance-adapter",
+      "title": "Seedance视频适配代码",
+      "mode": "unavailable",
+      "description": "独立Base URL与Key、文生或单图参考、doubao-seedance-2-0-fast-260128、5秒720P、任务与本机媒体；网址版17项Seedance软件检查、桌面/手机隔离代理及6项目录回归通过。真实账号/Base64/下载与效果未验收，无多图/声线/模型导出。"
+    }
+  ]
+}

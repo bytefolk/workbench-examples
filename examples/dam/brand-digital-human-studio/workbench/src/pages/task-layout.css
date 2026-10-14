@@ -1,0 +1,130 @@
+.task-layout-container {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+.task-layout-container .task-table {
+  table-layout: fixed;
+  min-width: 840px;
+  white-space: normal;
+}
+.task-column-name {
+  width: 30%;
+}
+.task-column-status {
+  width: 28%;
+}
+.task-column-spec {
+  width: 18%;
+}
+.task-column-date {
+  width: 12%;
+}
+.task-column-actions {
+  width: 12%;
+}
+.task-table th,
+.task-table td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  vertical-align: top;
+}
+.task-table .task-name {
+  width: 100%;
+  min-width: 0;
+}
+.task-table .task-name > span:not(.video-cover-frame) {
+  min-width: 0;
+  flex: 1;
+}
+.task-table .task-name > img,
+.task-table .task-name > .video-cover-frame {
+  flex-shrink: 0;
+}
+.task-table .task-name strong {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.task-table .task-name small,
+.task-table .task-subtext {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.task-table .table-actions {
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.task-table .table-actions > button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.task-error-summary {
+  margin-top: 7px;
+  min-width: 0;
+  max-width: 100%;
+}
+.task-error-summary > small {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  font-size: 10px;
+  line-height: 1.6;
+  color: #956b53;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.task-error-summary > button {
+  display: inline-flex;
+  padding: 4px 0;
+  margin-top: 2px;
+  font-size: 10px;
+}
+.task-detail-body {
+  overflow-wrap: anywhere;
+}
+.task-detail-body .detail-task-heading {
+  align-items: flex-start;
+  gap: 12px;
+}
+.task-detail-body .detail-task-heading h2,
+.task-detail-body .detail-list dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.task-detail-body .detail-task-heading .status {
+  flex-shrink: 0;
+}
+.task-error-detail > h3 {
+  margin-bottom: 8px;
+}
+.task-error-detail > pre {
+  max-width: 100%;
+  max-height: 260px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  user-select: text;
+  padding: 12px;
+  border: 1px solid #e8d9cd;
+  border-radius: 5px;
+  background: #fcf8f2;
+  color: #956b53;
+  font:
+    11px/1.7 "Consolas",
+    "Microsoft YaHei",
+    monospace;
+}
+@media (max-width: 650px) {
+  .task-layout-container .task-table {
+    min-width: 760px;
+  }
+  .task-error-detail > pre {
+    max-height: 220px;
+  }
+}

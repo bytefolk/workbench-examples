@@ -5,8 +5,9 @@
 ## 从这里开始
 
 - [场景分类](docs/domains.md)：CRM、ERP、MES、DAM 等 16 个业务领域。
-- [案例目录](catalog/cases.json)：机器可读索引，目前包含一个案例。
+- [案例目录](catalog/cases.json)：机器可读索引，目前包含两个案例。
 - [本色 Persona Studio · 企业数字人工作台](examples/dam/character-material-library/README.md)：首个 DAM 案例，含六页工作台、业务规格、合成数据与制作审核闭环。
+- [MUSE 缪思 · 品牌数字人技术验证工作台](examples/dam/brand-digital-human-studio/README.md)：四页工作台、图片上传、候选确认、可播放示意样片及可配置的阿里云万相、声音复刻/TTS/对口型与Higgsfield本机适配代码。
 - [案例规范](docs/case-standard.md)：目录、元信息、交付状态与验收要求。
 - [新增案例](CONTRIBUTING.md)：从模板开始，提交前执行检查。
 
@@ -16,7 +17,7 @@ npm run check
 npm run demo
 ```
 
-打开 <http://127.0.0.1:4173>。目录入口可按领域筛选；首个案例可管理人物与素材、解析需求、模拟视频任务、人工审核和归档溯源。`npm run demo` 先构建工作台再提供统一目录服务，全部使用合成数据，不连接外部 SaaS 或生成模型。
+打开 <http://127.0.0.1:4173>。目录入口可按领域筛选；首个案例可管理人物与素材、解析需求、模拟视频任务、人工审核和归档溯源。`npm run demo` 先构建工作台再提供统一目录服务，目录入口全部使用合成数据，不连接外部 SaaS 或生成模型。MUSE 的真实接口验证需按其案例说明单独启动工作台及本机代理，默认关闭付费调用。
 
 需要 Node.js 22.12 或更新版本。Windows 若使用 `\\wsl.localhost\...` 工作目录，请在 WSL 中执行 npm 命令；Windows npm 的默认脚本 shell 不支持 UNC 工作目录。
 
