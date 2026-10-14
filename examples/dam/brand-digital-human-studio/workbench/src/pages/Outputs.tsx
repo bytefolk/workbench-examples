@@ -11,7 +11,16 @@ import {
   FileDown,
 } from "lucide-react";
 import type { Task } from "../types";
-import { dateLabel, downloadJson, mediaPath, downloadPath } from "../store";
+import { VideoCover } from "../components/VideoCover";
+import { PUBLIC_DEMO } from "../api";
+import {
+  dateLabel,
+  downloadJson,
+  mediaPath,
+  downloadPath,
+  ratioLabel,
+  seedanceReferenceLabel,
+} from "../store";
 import { Empty, Modal, PageHeader, SearchBox } from "../components/UI";
 export function Outputs({
   tasks,
@@ -72,8 +81,9 @@ export function Outputs({
         />
       </div>
       <div className="inline-note muted-note">
-        模拟作品使用内置 6 秒样片；万相与小云雀真实作品保存到本机，Higgsfield
-        作品播放平台结果。正式多人共享仍需公司存储。
+        {PUBLIC_DEMO
+          ? "公开演示作品使用内置 6 秒示意样片，不是 AI 生成结果；素材与任务仅保存在当前浏览器，不连接真实 API。"
+          : "模拟作品使用内置 6 秒样片；Seedance、万相与小云雀真实作品保存到本机，Higgsfield 作品播放平台结果。正式多人共享仍需公司存储。"}
       </div>
       {filtered.length ? (
         <div className="output-grid">
@@ -84,14 +94,18 @@ export function Outputs({
                 onClick={() => onPreview(t)}
                 aria-label={`预览 ${t.title}`}
               >
-                <img
-                  src={
-                    t.assets.find(
-                      (a) => a.kind === (i % 3 === 1 ? "scene" : "character"),
-                    )?.image || mediaAsset("portrait.png")
-                  }
-                  alt={t.title}
-                />
+                {t.provider ? (
+                  <VideoCover src={mediaPath(t)} label={t.title} />
+                ) : (
+                  <img
+                    src={
+                      t.assets.find(
+                        (a) => a.kind === (i % 3 === 1 ? "scene" : "character"),
+                      )?.image || mediaAsset("portrait.png")
+                    }
+                    alt={t.title}
+                  />
+                )}
                 <span className="play-circle">
                   <Play size={22} fill="currentColor" />
                 </span>
@@ -99,11 +113,13 @@ export function Outputs({
                   {t.provider
                     ? t.provider === "speech"
                       ? "对口型 · 本地成片"
-                      : t.provider === "wan"
-                        ? "万相 · 本地成片"
-                        : t.provider === "xiaoyunque"
-                          ? "小云雀 · 本地成片"
-                          : "真实 API 结果"
+                      : t.provider === "seedance"
+                        ? "Seedance · 本地成片"
+                        : t.provider === "wan"
+                          ? "万相 · 本地成片"
+                          : t.provider === "xiaoyunque"
+                            ? "小云雀 · 本地成片"
+                            : "真实 API 结果"
                     : "00:06 · 演示样片"}
                 </span>
                 <span
@@ -134,10 +150,8 @@ export function Outputs({
                   </button>
                 </div>
                 <p>
-                  {t.provider === "wan" || t.provider === "speech"
-                    ? "比例随人物图"
-                    : t.draft.ratio}{" "}
-                  · {t.provider === "speech" ? "跟随语音" : "目标"}{" "}
+                  {ratioLabel(t)} ·{" "}
+                  {t.provider === "speech" ? "跟随语音" : "目标"}{" "}
                   {Number(t.draft.duration.toFixed(1))} 秒{" "}
                   <span>{dateLabel(t.createdAt)}</span>
                 </p>
@@ -192,8 +206,12 @@ export function Preview({
             key={task.draft.ratio}
             controls
             playsInline
-            preload="metadata"
-            poster={task.assets.find((a) => a.kind === "character")?.image}
+            preload="auto"
+            poster={
+              task.provider
+                ? undefined
+                : task.assets.find((a) => a.kind === "character")?.image
+            }
             onError={() => setMediaError(true)}
           >
             <source src={mediaPath(task)} type="video/mp4" />
@@ -206,13 +224,15 @@ export function Preview({
           <p>
             {task.provider === "speech"
               ? "万相对口型结果 · 已保存到本机 · 需人工审核声音和口型"
-              : task.provider === "wan"
-                ? "阿里云万相返回的视频 · 已保存到本机 · 需人工审核"
-                : task.provider === "xiaoyunque"
-                  ? "小云雀返回的视频 · 已保存到本机 · 需人工审核"
-                  : task.provider === "higgsfield"
-                    ? "Higgsfield 返回的视频 · 需人工审核人物和商品细节"
-                    : "内置素材动态样片 · 6 秒 · 无声音克隆或 AI 表演"}
+              : task.provider === "seedance"
+                ? "Seedance 返回的视频 · 已保存到本机 · 需人工审核"
+                : task.provider === "wan"
+                  ? `万相${task.providerProtocol === "gateway" ? "网关" : ""}返回的视频 · 已保存到本机 · 需人工审核`
+                  : task.provider === "xiaoyunque"
+                    ? "小云雀返回的视频 · 已保存到本机 · 需人工审核"
+                    : task.provider === "higgsfield"
+                      ? "Higgsfield 返回的视频 · 需人工审核人物和商品细节"
+                      : "内置素材动态样片 · 6 秒 · 无声音克隆或 AI 表演"}
           </p>
         </div>
         <div className="preview-inspector">
@@ -221,11 +241,7 @@ export function Preview({
           </span>
           <h2>{task.title}</h2>
           <div className="spec-summary">
-            <span>
-              {task.provider === "wan" || task.provider === "speech"
-                ? "比例随人物图"
-                : task.draft.ratio}
-            </span>
+            <span>{ratioLabel(task)}</span>
             <span>
               {task.provider === "speech" ? "跟随语音" : "目标"}{" "}
               {Number(task.draft.duration.toFixed(1))} 秒
@@ -239,10 +255,18 @@ export function Preview({
           <h3>
             {task.provider === "speech"
               ? "人物与声线档案"
-              : task.provider === "wan"
-                ? "创作档案（仅首帧提交模型）"
-                : "使用的品牌资产"}
+              : task.provider === "seedance"
+                ? "创作档案（实际输入见下方）"
+                : task.provider === "wan"
+                  ? "创作档案（仅首帧提交模型）"
+                  : "使用的品牌资产"}
           </h3>
+          {task.provider === "seedance" && (
+            <p className="helper">
+              实际参考：{seedanceReferenceLabel(task)}
+              。其他独立商品、场景和声线未额外提交；本入口未接入克隆声音和口型驱动。
+            </p>
+          )}
           {task.provider === "speech" && (
             <p className="helper">
               提交内容为人物图＋新台词音频。声线 ID：
@@ -280,9 +304,11 @@ export function Preview({
           <div className="review-note">
             <strong>审核建议</strong>
             <p>
-              {task.provider === "speech"
-                ? "请试听声线相似度、发音与情绪，检查口型时序及面部变化。此片仅验证语音驱动，不代表全身剧情和帽子细节已通过。"
-                : "请检查人物一致性、商品细节、全身动作及声音口型。API 原生音频不等于品牌克隆声线。"}
+              {PUBLIC_DEMO
+                ? "此示意样片仅演示审核操作，不能据此验证同人物新表情、全身动作、帽子细节或声音口型效果。"
+                : task.provider === "speech"
+                  ? "请试听声线相似度、发音与情绪，检查口型时序及面部变化。此片仅验证语音驱动，不代表全身剧情和帽子细节已通过。"
+                  : "请检查人物一致性、商品细节、全身动作及声音口型。API 原生音频不等于品牌克隆声线。"}
             </p>
           </div>
           <button

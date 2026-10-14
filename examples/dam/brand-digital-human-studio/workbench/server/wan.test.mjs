@@ -1,10 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, readFile } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import { createApp } from "./app.mjs";
-import { buildWanInput, wanBase, wanEstimate } from "./wan.mjs";
+import {
+  buildWanInput,
+  buildWanGatewayInput,
+  wanApiBase,
+  wanBase,
+  wanEstimate,
+} from "./wan.mjs";
 import {
   WAN_MODELS,
   wanModel,
@@ -142,6 +148,7 @@ test("save, replace and clear page credentials without network calls, key echo o
   assert(!JSON.stringify(saved.data).includes(key));
   assert.equal(f.calls(), 0);
   const replaced = await f.json("/api/wan/config", {
+    apiKey: key,
     workspaceId: "next-workspace",
     enabled: false,
   });
@@ -516,4 +523,571 @@ test("download retry resumes the existing result without querying or generating 
   assert.equal(f.submits(), 1);
   assert.equal(queries, 1);
   assert.equal(downloads, 2);
+});
+
+async function submittedRecord(f) {
+  for (let i = 0; i < 100; i++) {
+    const state = JSON.parse(
+      await readFile(path.join(f.dir, "wan/state.json"), "utf8"),
+    );
+    if (state[id]?.providerStatus !== "SUBMITTING") return state[id];
+    await new Promise((r) => setTimeout(r, 5));
+  }
+  throw new Error("Fixture submission timeout");
+}
+const configureGateway = (f, overrides = {}) =>
+  f.json("/api/wan/config", {
+    apiKey: key,
+    protocol: "gateway",
+    baseUrl: "https://gateway.fixture/v1",
+    gatewayModelId: "wan-custom-alias",
+    enabled: true,
+    ...overrides,
+  });
+const gatewayFetch = async (url, opts) => {
+  if (opts.method === "POST")
+    return response({
+      code: "SUCCESS",
+      data: { task_id: "task_gateway_fixture", status: "queued" },
+    });
+  if (url.endsWith("/content"))
+    return new Response(
+      Buffer.concat([
+        Buffer.from([0, 0, 0, 24]),
+        Buffer.from("ftypisom"),
+        Buffer.alloc(20),
+      ]),
+      { headers: { "Content-Type": "video/mp4" } },
+    );
+  return response({
+    code: "success",
+    data: {
+      id: "task_gateway_fixture",
+      status: "SUCCESS",
+      result_url: "https://media.fixture/result.mp4",
+    },
+  });
+};
+test("gateway and native base URL presets, alias and config validation save without network", async (t) => {
+  assert.equal(
+    wanApiBase("gateway", "https://gateway.fixture/"),
+    "https://gateway.fixture/v1",
+  );
+  assert.equal(
+    wanApiBase("dashscope", "https://native.fixture/"),
+    "https://native.fixture/api/v1",
+  );
+  assert.equal(
+    wanApiBase("dashscope", "https://native.fixture/proxy/api/v1/"),
+    "https://native.fixture/proxy/api/v1",
+  );
+  assert.throws(() => wanApiBase("dashscope", "https://gateway.fixture/v1"));
+  const f = await fixture(t);
+  await f.configure();
+  assert.equal(
+    (
+      await f.json("/api/wan/config", {
+        protocol: "gateway",
+        baseUrl: "https://gateway.fixture/v1",
+      })
+    ).status,
+    409,
+  );
+  const saved = await configureGateway(f, {
+    baseUrl: "https://gateway.fixture/proxy/v1/",
+  });
+  assert.equal(saved.data.baseUrl, "https://gateway.fixture/proxy/v1");
+  assert.equal(saved.data.protocol, "gateway");
+  assert.equal(saved.data.gatewayModelId, "wan-custom-alias");
+  assert.equal(JSON.stringify(saved).includes(key), false);
+  for (const invalid of [
+    { protocol: "unknown" },
+    { baseUrl: "http://external.fixture/v1" },
+    { baseUrl: "https://u:p@gateway.fixture/v1" },
+    { baseUrl: "https://gateway.fixture/v1?key=x" },
+    { baseUrl: "https://gateway.fixture/v1/video/generations" },
+    { gatewayModelId: "bad alias" },
+    { gatewayModelId: "https://example.com/model" },
+    { gatewayModelId: 123 },
+  ])
+    assert.equal((await configureGateway(f, invalid)).status, 400);
+  assert.equal(f.calls(), 0);
+  await f.json("/api/wan/config/clear", {});
+  assert.equal((await f.json("/api/wan/config")).data.protocol, "dashscope");
+});
+test("gateway payload ignores native audio and shot flags; only conservative 5s720p", () => {
+  const payload = buildWanGatewayInput(
+    {
+      ...draft,
+      modelId: "wan2.6-i2v",
+      generateAudio: false,
+      wanShotType: "multi",
+    },
+    png,
+    "account:wan-2.6",
+  );
+  assert.deepEqual(Object.keys(payload), [
+    "model",
+    "prompt",
+    "duration",
+    "resolution",
+    "image",
+  ]);
+  assert.equal(payload.model, "account:wan-2.6");
+  assert.equal(payload.resolution, "720P");
+  assert.equal(payload.image, png);
+  assert.throws(() => buildWanGatewayInput({ ...draft, duration: 10 }, png));
+  assert.throws(() =>
+    buildWanGatewayInput({ ...draft, resolution: "1080p" }, png),
+  );
+});
+test("gateway routes actual model, frame, Bearer and archive through configured prefix", async (t) => {
+  const f = await fixture(t, gatewayFetch);
+  await configureGateway(f, { baseUrl: "https://gateway.fixture/proxy/v1" });
+  const result = await f.json("/api/wan/videos", {
+    ...body,
+    draft: { ...draft, modelId: "wan2.6-i2v", generateAudio: false },
+  });
+  assert.equal(result.status, 200);
+  assert.equal(result.data.estimatedCny, null);
+  assert.equal(result.data.modelId, "wan-custom-alias");
+  assert.equal(result.data.protocol, "gateway");
+  await submittedRecord(f);
+  const done = await f.json(`/api/wan/requests/${id}`);
+  assert.equal(done.data.status, "completed");
+  assert.deepEqual(
+    f.requests.map((r) => r.url),
+    [
+      "https://gateway.fixture/proxy/v1/video/generations",
+      "https://gateway.fixture/proxy/v1/video/generations/task_gateway_fixture",
+      "https://gateway.fixture/proxy/v1/videos/task_gateway_fixture/content",
+    ],
+  );
+  for (const r of f.requests) {
+    assert.equal(r.opts.headers.Authorization, `Bearer ${key}`);
+    assert.equal(r.opts.headers["X-DashScope-Async"], undefined);
+    assert.equal(r.opts.redirect, "error");
+  }
+  const payload = JSON.parse(f.requests[0].opts.body);
+  assert.equal(payload.image, png);
+  assert.equal(payload.model, "wan-custom-alias");
+  assert.equal(payload.parameters, undefined);
+  const state = await submittedRecord(f);
+  assert.equal(state.actualModelId, "wan-custom-alias");
+  assert.equal(state.protocol, "gateway");
+  assert.equal(JSON.stringify(state).includes(key), false);
+  assert.equal(
+    (
+      await f.json("/api/wan/videos", {
+        ...body,
+        draft: { ...draft, modelId: "wan2.6-i2v", generateAudio: false },
+      })
+    ).status,
+    200,
+  );
+  assert.equal(f.submits(), 1);
+  await f.json("/api/wan/config/clear", {});
+  assert.equal((await f.request(done.data.video)).status, 200);
+  assert.equal(f.calls(), 3);
+});
+test("gateway HTTPS frame remains URL; no extra image fetch or native model restrictions", async (t) => {
+  const f = await fixture(t, gatewayFetch);
+  await configureGateway(f, { gatewayModelId: "" });
+  const submitted = await f.json("/api/wan/videos", {
+    ...body,
+    assets: [
+      {
+        id: "p",
+        kind: "character",
+        image: "https://images.fixture/person.png",
+      },
+    ],
+  });
+  assert.equal(submitted.status, 200);
+  await submittedRecord(f);
+  const payload = JSON.parse(f.requests[0].opts.body);
+  assert.equal(payload.image, "https://images.fixture/person.png");
+  assert.equal(payload.model, draft.modelId);
+  assert.equal(f.calls(), 1);
+});
+test("gateway wrapper code success cannot complete queued task; failure reason surfaced", async (t) => {
+  const f = await fixture(t, async (url, opts) =>
+    opts.method === "POST"
+      ? response({ id: "task_fixture", status: "queued" })
+      : response({
+          code: "SUCCESS",
+          data: {
+            id: "task_fixture",
+            status: "QUEUED",
+            result_url: "https://media.fixture/result.mp4",
+          },
+        }),
+  );
+  await configureGateway(f);
+  await f.json("/api/wan/videos", body);
+  await submittedRecord(f);
+  const queued = await f.json(`/api/wan/requests/${id}`);
+  assert.equal(queued.data.status, "queued");
+  assert.equal(queued.data.video, undefined);
+  assert.equal(f.calls(), 2);
+  const g = await fixture(t, async (url, opts) =>
+    opts.method === "POST"
+      ? response({ id: "task_fixture", status: "queued" })
+      : response({
+          code: "success",
+          data: {
+            id: "task_fixture",
+            status: "FAILURE",
+            fail_reason: `AMAX refused ${key}`,
+          },
+        }),
+  );
+  await configureGateway(g);
+  await g.json("/api/wan/videos", body);
+  await submittedRecord(g);
+  const failed = await g.json(`/api/wan/requests/${id}`);
+  assert.equal(failed.data.status, "failed");
+  assert.equal(failed.data.error.includes(key), false);
+  assert.equal(failed.data.error.includes("AMAX"), false);
+});
+test("changing gateway protocol, address or Key blocks pending old tasks before network", async (t) => {
+  const f = await fixture(t, gatewayFetch);
+  await configureGateway(f);
+  await f.json("/api/wan/videos", body);
+  await submittedRecord(f);
+  for (const change of [
+    { apiKey: "another-test-key" },
+    { baseUrl: "https://another.fixture/v1" },
+    { protocol: "dashscope", baseUrl: "https://native.fixture/api/v1" },
+  ]) {
+    assert.equal((await configureGateway(f, change)).status, 200);
+    assert.equal((await f.json(`/api/wan/requests/${id}`)).status, 409);
+    assert.equal(f.calls(), 1);
+    await configureGateway(f);
+  }
+  assert.equal(
+    (await f.json(`/api/wan/requests/${id}`)).data.status,
+    "completed",
+  );
+});
+test("gateway timeout is durable unknown and replay/restart never submits again", async (t) => {
+  const f = await fixture(t, async () => {
+    throw new Error("timeout");
+  });
+  await configureGateway(f);
+  await f.json("/api/wan/videos", body);
+  const state = await submittedRecord(f);
+  assert.equal(state.status, "in_progress");
+  assert.equal(state.providerStatus, "SUBMISSION_UNKNOWN");
+  await f.json("/api/wan/videos", body);
+  assert.equal(f.submits(), 1);
+  const g = await fixture(t, gatewayFetch, {}, f.dir);
+  assert.equal(
+    (await g.json("/api/wan/videos", body, { Cookie: f.cookie() })).data
+      .providerStatus,
+    "SUBMISSION_UNKNOWN",
+  );
+  assert.equal(g.calls(), 0);
+});
+test("gateway JSON download falls back to public MP4 without Key; bad files retry same task", async (t) => {
+  const f = await fixture(t, async (url, opts) => {
+    if (opts.method === "POST")
+      return response({ id: "task_fixture", status: "queued" });
+    if (url.endsWith("/content"))
+      return response({ error: { message: "binary unavailable" } }, 502);
+    if (url.startsWith("https://media.fixture"))
+      return gatewayFetch("https://unused.fixture/content", {});
+    return response({
+      data: {
+        id: "task_fixture",
+        status: "succeeded",
+        url: "https://media.fixture/result.mp4",
+      },
+      code: "success",
+    });
+  });
+  await configureGateway(f);
+  await f.json("/api/wan/videos", body);
+  await submittedRecord(f);
+  assert.equal(
+    (await f.json(`/api/wan/requests/${id}`)).data.status,
+    "completed",
+  );
+  const external = f.requests.find((r) =>
+    r.url.startsWith("https://media.fixture"),
+  );
+  assert.equal(external.opts.headers, undefined);
+  assert.equal(external.opts.redirect, "error");
+  let ready = false;
+  const impl = async (url, opts) =>
+    opts.method === "POST"
+      ? response({ id: "task_fixture", status: "queued" })
+      : url.endsWith("/content")
+        ? ready
+          ? gatewayFetch(url, opts)
+          : response({ message: "not-video" })
+        : response({
+            data: { id: "task_fixture", status: "SUCCESS" },
+            code: "success",
+          });
+  const g = await fixture(t, impl);
+  await configureGateway(g);
+  await g.json("/api/wan/videos", body);
+  await submittedRecord(g);
+  assert.equal((await g.json(`/api/wan/requests/${id}`)).status, 502);
+  const state = await submittedRecord(g);
+  assert.equal(state.status, "in_progress");
+  assert.equal(state.mediaFile, undefined);
+  state.nextPoll = 0;
+  await writeFile(
+    path.join(g.dir, "wan/state.json"),
+    JSON.stringify({ [id]: state }),
+  );
+  ready = true;
+  const restored = await fixture(t, impl, {}, g.dir);
+  assert.equal(
+    (
+      await restored.json(`/api/wan/requests/${id}`, undefined, {
+        Cookie: g.cookie(),
+      })
+    ).data.status,
+    "completed",
+  );
+  assert.equal(restored.submits(), 0);
+  assert.equal(restored.calls(), 1);
+});
+test("gateway settings block speech before registration, uploads or TTS network calls", async (t) => {
+  const f = await fixture(t, gatewayFetch);
+  await configureGateway(f);
+  const clone = await f.json("/api/speech/voices", {
+    submissionId: id,
+    sampleId: remoteId,
+    characterId: "p",
+    name: "测试声线",
+  });
+  assert.equal(clone.status, 409);
+  assert.match(clone.data.error, /百炼原生/);
+  const tts = await f.json("/api/speech/utterances", {
+    submissionId: id,
+    characterId: "p",
+    text: "你好",
+  });
+  assert.equal(tts.status, 409);
+  assert.equal(f.calls(), 0);
+});
+test("gateway environment cannot borrow DASHSCOPE key; env routing and legacy native records", async (t) => {
+  const f = await fixture(t, gatewayFetch, {
+    WAN_PROTOCOL: "gateway",
+    WAN_BASE_URL: "https://env.fixture/proxy/v1/",
+    WAN_GATEWAY_MODEL_ID: "env-wan",
+    DASHSCOPE_API_KEY: key,
+    WAN_ENABLE_REAL: "true",
+  });
+  const blocked = (await f.json("/api/wan/config")).data;
+  assert.equal(blocked.configured, false);
+  assert.equal(blocked.protocol, "gateway");
+  assert.equal(blocked.baseUrl, "https://env.fixture/proxy/v1");
+  assert.equal((await f.json("/api/wan/videos", body)).status, 409);
+  assert.equal(f.calls(), 0);
+  const env = await fixture(t, gatewayFetch, {
+    WAN_PROTOCOL: "gateway",
+    WAN_BASE_URL: "https://env.fixture/v1",
+    WAN_GATEWAY_MODEL_ID: "env-wan",
+    WAN_API_KEY: key,
+    WAN_ENABLE_REAL: "true",
+  });
+  await env.json("/api/wan/config");
+  await env.json("/api/wan/videos", body);
+  await submittedRecord(env);
+  assert.equal(JSON.parse(env.requests[0].opts.body).model, "env-wan");
+  const native = await fixture(t);
+  await native.configure();
+  await native.json("/api/wan/videos", body);
+  await submittedRecord(native);
+  const settingsPath = path.join(native.dir, "wan/settings.json"),
+    statePath = path.join(native.dir, "wan/state.json");
+  const settings = JSON.parse(await readFile(settingsPath, "utf8")),
+    state = JSON.parse(await readFile(statePath, "utf8"));
+  for (const setting of Object.values(settings)) {
+    delete setting.protocol;
+    delete setting.baseUrl;
+    delete setting.gatewayModelId;
+  }
+  for (const field of [
+    "protocol",
+    "baseUrl",
+    "credentialHash",
+    "gatewayModelId",
+    "actualModelId",
+  ])
+    delete state[id][field];
+  await writeFile(settingsPath, JSON.stringify(settings));
+  await writeFile(statePath, JSON.stringify(state));
+  const legacy = await fixture(t, undefined, {}, native.dir);
+  const config = (
+    await legacy.json("/api/wan/config", undefined, { Cookie: native.cookie() })
+  ).data;
+  assert.equal(config.protocol, "dashscope");
+  assert.equal(config.baseUrl, wanBase("test-workspace"));
+  assert.equal(
+    (
+      await legacy.json(`/api/wan/requests/${id}`, undefined, {
+        Cookie: native.cookie(),
+      })
+    ).data.status,
+    "completed",
+  );
+});
+test("native custom base routes official contract and default address derives workspace", async (t) => {
+  const f = await fixture(t);
+  assert.equal(wanApiBase("dashscope", wanBase(), "brand"), wanBase("brand"));
+  assert.equal(
+    wanApiBase("dashscope", "https://custom.fixture/proxy/api/v1", "brand"),
+    "https://custom.fixture/proxy/api/v1",
+  );
+  await f.json("/api/wan/config", {
+    apiKey: key,
+    protocol: "dashscope",
+    baseUrl: "https://native.fixture/proxy/api/v1",
+    workspaceId: "brand",
+    enabled: true,
+  });
+  await f.json("/api/wan/videos", body);
+  await submittedRecord(f);
+  assert.equal(
+    (await f.json(`/api/wan/requests/${id}`)).data.status,
+    "completed",
+  );
+  assert.equal(
+    f.requests[0].url,
+    "https://native.fixture/proxy/api/v1/services/aigc/video-generation/video-synthesis",
+  );
+  assert.equal(
+    f.requests[1].url,
+    `https://native.fixture/proxy/api/v1/tasks/${remoteId}`,
+  );
+  assert.equal(f.requests[0].opts.headers["X-DashScope-Async"], "enable");
+  assert.deepEqual(
+    JSON.parse(f.requests[0].opts.body),
+    buildWanInput(draft, png),
+  );
+});
+test("gateway rejects unsupported params and private frame before paid request", async (t) => {
+  const f = await fixture(t, gatewayFetch);
+  await configureGateway(f);
+  for (const change of [{ duration: 10 }, { resolution: "1080p" }])
+    assert.equal(
+      (
+        await f.json("/api/wan/videos", {
+          ...body,
+          draft: { ...draft, ...change },
+        })
+      ).status,
+      400,
+    );
+  assert.equal(
+    (
+      await f.json("/api/wan/videos", {
+        ...body,
+        assets: [
+          {
+            id: "p",
+            kind: "character",
+            image: "https://127.0.0.1/private.png",
+          },
+        ],
+      })
+    ).status,
+    400,
+  );
+  assert.equal(f.calls(), 0);
+});
+test("explicit channel-unavailable 503 is rejected, preserves diagnostics and never replays paid submit", async (t) => {
+  for (const phrase of [
+    "No available channel for model",
+    "NO AVAILABLE CHANNEL FOR MODEL",
+  ]) {
+    const f = await fixture(t, async () =>
+      response(
+        {
+          error: {
+            message: `${phrase} wan2.6-i2v-flash under group auto (distributor); ${key} https://private.fixture/error`,
+          },
+          request_id: "req-channel-fixture",
+        },
+        503,
+      ),
+    );
+    await configureGateway(f);
+    await f.json("/api/wan/videos", body);
+    const rejected = await submittedRecord(f);
+    assert.equal(rejected.status, "failed");
+    assert.equal(rejected.providerStatus, "SUBMISSION_REJECTED");
+    assert.match(rejected.error, /网关未找到该模型可用渠道/);
+    assert.match(rejected.error, /req-channel-fixture/);
+    assert(
+      rejected.error.includes(
+        `${phrase} wan2.6-i2v-flash under group auto (distributor)`,
+      ),
+    );
+    assert.equal(rejected.error.includes(key), false);
+    assert.equal(rejected.error.includes("https://private.fixture"), false);
+    assert.equal(rejected.error.includes("百炼"), false);
+    await f.json("/api/wan/videos", body);
+    await f.json(`/api/wan/requests/${id}`);
+    assert.equal(f.submits(), 1);
+    assert.equal(f.calls(), 1);
+    // Simulate the old classification of this exact confirmed rejection.
+    rejected.status = "in_progress";
+    rejected.providerStatus = "SUBMISSION_UNKNOWN";
+    await writeFile(
+      path.join(f.dir, "wan/state.json"),
+      JSON.stringify({ [id]: rejected }),
+    );
+    const restored = await fixture(t, gatewayFetch, {}, f.dir);
+    const recovered = await restored.json(
+      `/api/wan/requests/${id}`,
+      undefined,
+      { Cookie: f.cookie() },
+    );
+    assert.equal(recovered.data.status, "failed");
+    assert.equal(recovered.data.providerStatus, "SUBMISSION_REJECTED");
+    assert.equal(recovered.data.error, rejected.error);
+    await restored.json("/api/wan/videos", body, { Cookie: f.cookie() });
+    assert.equal(restored.calls(), 0);
+    const persisted = JSON.parse(
+      await readFile(path.join(f.dir, "wan/state.json"), "utf8"),
+    );
+    assert.equal(persisted[id].providerStatus, "SUBMISSION_REJECTED");
+  }
+});
+test("ordinary 503 remains submission-unknown and restart retains original diagnostics", async (t) => {
+  const f = await fixture(t, async () =>
+    response(
+      {
+        error: { message: "temporary upstream failure" },
+        request_id: "req-temporary-fixture",
+      },
+      503,
+    ),
+  );
+  await configureGateway(f);
+  await f.json("/api/wan/videos", body);
+  const unknown = await submittedRecord(f);
+  assert.equal(unknown.status, "in_progress");
+  assert.equal(unknown.providerStatus, "SUBMISSION_UNKNOWN");
+  assert.match(unknown.error, /temporary upstream failure/);
+  assert.match(unknown.error, /req-temporary-fixture/);
+  assert.equal(unknown.error.includes("百炼"), false);
+  const restored = await fixture(t, gatewayFetch, {}, f.dir);
+  const recovered = await restored.json(`/api/wan/requests/${id}`, undefined, {
+    Cookie: f.cookie(),
+  });
+  assert.equal(recovered.data.status, "in_progress");
+  assert.equal(recovered.data.providerStatus, "SUBMISSION_UNKNOWN");
+  assert.equal(recovered.data.error, unknown.error);
+  await restored.json("/api/wan/videos", body, { Cookie: f.cookie() });
+  assert.equal(restored.calls(), 0);
+  await f.json("/api/wan/videos", body);
+  assert.equal(f.submits(), 1);
 });

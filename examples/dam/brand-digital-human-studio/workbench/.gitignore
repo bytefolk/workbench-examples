@@ -6,3 +6,19 @@ dist/
 work/
 
 .local/
+
+# Never commit local credentials, client assets or generated output.
+uploads/
+generated/
+recordings/
+client-assets/
+private/
+outputs/
+*.xlsx
+*.xls
+*.docx
+*.pptx
+*.pdf
+*.pem
+*.key
+*.log

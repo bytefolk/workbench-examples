@@ -14,6 +14,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import type { Page } from "../types";
 import type { DemoUser } from "../demoAuth";
+import { PUBLIC_DEMO } from "../api";
 const nav = [
   { id: "assets", label: "资产库", icon: FolderOpen },
   { id: "create", label: "视频创作", icon: Clapperboard },
@@ -79,7 +80,8 @@ export function Shell({
         <div className="sidebar-bottom">
           <div className="demo-note">
             <span className="tiny-dot" />
-            本地演示空间<p>让创意发生，让品牌沉淀。</p>
+            {PUBLIC_DEMO ? "公开模拟演示" : "本地演示空间"}
+            <p>让创意发生，让品牌沉淀。</p>
           </div>
           <button className="sidebar-link" onClick={onHelp}>
             <Info size={16} />
@@ -122,7 +124,11 @@ export function Shell({
           </div>
           <button className="demo-indicator" onClick={onHelp}>
             <i />
-            {connected ? "API 已配置" : "技术验证 Demo"}
+            {PUBLIC_DEMO
+              ? "仅模拟 Demo"
+              : connected
+                ? "API 已配置"
+                : "技术验证 Demo"}
             <Info size={14} />
           </button>
           <button
@@ -137,7 +143,11 @@ export function Shell({
         </header>
         <main key={page}>{children}</main>
         <footer className="app-footer">
-          <span>默认模拟 · 真实 API 按量计费 · 当前为技术验证 Demo</span>
+          <span>
+            {PUBLIC_DEMO
+              ? "公开版仅模拟 · 无真实生成 · 内置 6 秒示意样片"
+              : "默认模拟 · 真实 API 按量计费 · 当前为技术验证 Demo"}
+          </span>
           <span>MUSE 缪思 · 品牌创作空间</span>
         </footer>
       </div>

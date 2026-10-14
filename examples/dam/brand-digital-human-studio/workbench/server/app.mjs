@@ -8,6 +8,7 @@ import { rankAssets } from "../shared/matching.mjs";
 import { installXiaoyunque } from "./xiaoyunque.mjs";
 import { installWan } from "./wan.mjs";
 import { installSpeech } from "./speech.mjs";
+import { installSeedance } from "./seedance.mjs";
 import {
   ApiError,
   apiUrl,
@@ -586,6 +587,13 @@ export async function createApp({
     fetchImpl,
     checkMediaUrl,
     ...wanServices,
+  });
+  await installSeedance(app, {
+    env,
+    dataDir,
+    publicDir: path.join(root, "public"),
+    fetchImpl,
+    checkMediaUrl,
   });
   app.use("/api", (req, res) =>
     res.status(404).json({ error: "接口不存在。" }),

@@ -16,12 +16,15 @@ import {
 import type { Asset, AssetKind, Draft } from "../types";
 import { kindLabels } from "../types";
 import { makeShots } from "../data";
+import { CREATION_EXAMPLES } from "../../shared/creation-examples.mjs";
+import "./creation-examples.css";
 import { AssetImage, PageHeader } from "../components/UI";
 import { MatchPanel } from "../components/MatchPanel";
 import { XyqPanel } from "../components/XyqPanel";
 import { WanPanel } from "../components/WanPanel";
+import { SeedancePanel } from "../components/SeedancePanel";
 import { SpeechStudio } from "../components/SpeechStudio";
-import { api, matchAssets, rulesFallback } from "../api";
+import { api, matchAssets, rulesFallback, PUBLIC_DEMO } from "../api";
 import type { MatchResult, ProviderConfig } from "../api";
 interface Props {
   draft: Draft;
@@ -46,6 +49,8 @@ export function Create({
   onAddAsset,
 }: Props) {
   const [step, setStep] = useState(1);
+  const [exampleId, setExampleId] = useState(CREATION_EXAMPLES[0].id);
+  const example = CREATION_EXAMPLES.find((item) => item.id === exampleId)!;
   const [error, setError] = useState("");
   const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
   const [matching, setMatching] = useState(false);
@@ -56,10 +61,12 @@ export function Create({
   } | null>(null);
   const matchVersion = useRef(0);
   const estimateVersion = useRef(0);
-  const realMode = draft.mode === "higgsfield";
-  const xyqMode = draft.mode === "xiaoyunque";
-  const wanMode = draft.mode === "wan";
-  const speechMode = draft.mode === "speech";
+  const realMode = !PUBLIC_DEMO && draft.mode === "higgsfield";
+  const xyqMode = !PUBLIC_DEMO && draft.mode === "xiaoyunque";
+  const wanMode = !PUBLIC_DEMO && draft.mode === "wan";
+  const speechMode = !PUBLIC_DEMO && draft.mode === "speech";
+  const seedanceMode = !PUBLIC_DEMO && draft.mode === "seedance";
+  const [seedanceReady, setSeedanceReady] = useState(false);
   const [wanReady, setWanReady] = useState(false);
   const [xyqReady, setXyqReady] = useState(false);
   const realAvailable = !!config?.configured && !!config?.enabled;
@@ -148,6 +155,18 @@ export function Create({
     patch(changes);
   }
   function chooseMode(mode: Draft["mode"]) {
+    if (mode === "seedance") {
+      patch({
+        mode,
+        modelId: "doubao-seedance-2-0-fast-260128",
+        duration: 5,
+        resolution: "720p",
+        generateAudio: false,
+        seedanceInputMode: "image",
+        seedanceFrameAssetId: draft.characterId,
+      });
+      return;
+    }
     if (mode === "speech") {
       patch({
         mode,
@@ -184,7 +203,8 @@ export function Create({
               model.maxDuration,
               Math.max(model.minDuration, draft.duration),
             )
-          : [12, 24, 36].includes(draft.duration)
+          : (mode === "demo" && draft.duration === 5) ||
+              [12, 24, 36].includes(draft.duration)
             ? draft.duration
             : 12,
     });
@@ -268,11 +288,6 @@ export function Create({
           </div>
         </div>
       )}
-      {config?.catalogOnly && (
-        <p className="inline-note">
-          此目录入口仅运行免费模拟。真实验证请按案例说明单独启动工作台和本机代理。
-        </p>
-      )}
       <section className="provider-choice" aria-label="生成模式">
         <div className="integration-heading">
           <div>
@@ -280,61 +295,100 @@ export function Create({
             <strong>生成模式</strong>
           </div>
           <span
-            className={`connection-status ${realAvailable ? "connected" : ""}`}
+            className={`connection-status ${!seedanceMode && realAvailable ? "connected" : ""}`}
           >
-            {realAvailable ? "API 已配置" : "本地 Demo"}
+            {PUBLIC_DEMO
+              ? "公开演示 · 仅模拟"
+              : seedanceMode
+                ? "Seedance · 配置见下方"
+                : realAvailable
+                  ? "API 已配置"
+                  : "本地 Demo"}
           </span>
         </div>
         <div className="mode-options" role="group" aria-label="选择生成模式">
           <button
             className={
-              !realMode && !xyqMode && !wanMode && !speechMode ? "active" : ""
+              !realMode && !xyqMode && !wanMode && !speechMode && !seedanceMode
+                ? "active"
+                : ""
             }
-            aria-pressed={!realMode && !xyqMode && !wanMode && !speechMode}
+            aria-pressed={
+              !realMode && !xyqMode && !wanMode && !speechMode && !seedanceMode
+            }
             onClick={() => chooseMode("demo")}
           >
             <strong>模拟流程</strong>
             <span>免费 · 内置样片 · 验证操作流程</span>
           </button>
-          <button
-            className={wanMode ? "active" : ""}
-            aria-pressed={wanMode}
-            onClick={() => chooseMode("wan")}
-          >
-            <strong>阿里云万相真实 API</strong>
-            <span>页面配置 Key · 首帧生视频 · 成片回到工作台</span>
-          </button>
-          <button
-            className={realMode ? "active" : ""}
-            aria-pressed={realMode}
-            onClick={() => chooseMode("higgsfield")}
-          >
-            <strong>Higgsfield 真实 API</strong>
-            <span>按调用计费 · 参考图生成短视频</span>
-          </button>
-          <button
-            className={xyqMode ? "active" : ""}
-            aria-pressed={xyqMode}
-            onClick={() => chooseMode("xiaoyunque")}
-          >
-            <strong>小云雀真实生成</strong>
-            <span>官方授权 · 消耗账号积分 · 成片回到工作台</span>
-          </button>
-          <button
-            className={speechMode ? "active" : ""}
-            aria-pressed={speechMode}
-            onClick={() => chooseMode("speech")}
-          >
-            <strong>声音复刻与对口型</strong>
-            <span>上传录音 · 品牌声线 · 新台词口播</span>
-          </button>
+          {!PUBLIC_DEMO && (
+            <>
+              <button
+                className={seedanceMode ? "active" : ""}
+                aria-pressed={seedanceMode}
+                onClick={() => chooseMode("seedance")}
+              >
+                <strong>Seedance 真实视频生成</strong>
+                <span>页面配置 Key · 人物首帧参考 · 成片回到工作台</span>
+              </button>
+              <button
+                className={wanMode ? "active" : ""}
+                aria-pressed={wanMode}
+                onClick={() => chooseMode("wan")}
+              >
+                <strong>万相真实视频生成</strong>
+                <span>
+                  官方或视频网关 · 页面配置地址和 Key · 成片回到工作台
+                </span>
+              </button>
+              <button
+                className={realMode ? "active" : ""}
+                aria-pressed={realMode}
+                onClick={() => chooseMode("higgsfield")}
+              >
+                <strong>Higgsfield 真实 API</strong>
+                <span>按调用计费 · 参考图生成短视频</span>
+              </button>
+              <button
+                className={xyqMode ? "active" : ""}
+                aria-pressed={xyqMode}
+                onClick={() => chooseMode("xiaoyunque")}
+              >
+                <strong>小云雀真实生成</strong>
+                <span>官方授权 · 消耗账号积分 · 成片回到工作台</span>
+              </button>
+              <button
+                className={speechMode ? "active" : ""}
+                aria-pressed={speechMode}
+                onClick={() => chooseMode("speech")}
+              >
+                <strong>声音复刻与对口型</strong>
+                <span>上传录音 · 品牌声线 · 新台词口播</span>
+              </button>
+            </>
+          )}
         </div>
+        {PUBLIC_DEMO && (
+          <p className="helper provider-note">
+            本页面仅展示资产、创作、任务与成品的模拟流程，不连接真实
+            API，不提供密钥输入，不会扣生成费用。Seedance、万相及声音接口已在本机完整版预留；模型账号权限和人物、动作、帽子效果需另行验证。模拟成片是内置
+            6 秒示意样片，不是 AI 生成结果。
+          </p>
+        )}
         {wanMode && (
           <WanPanel
             draft={draft}
             assets={assets}
             onChange={patch}
             onReady={setWanReady}
+          />
+        )}
+        {seedanceMode && (
+          <SeedancePanel
+            draft={draft}
+            assets={assets}
+            onChange={patch}
+            onReady={setSeedanceReady}
           />
         )}
         {xyqMode && (
@@ -395,24 +449,48 @@ export function Create({
                     {draft.prompt.length} / 1200
                   </span>
                 </label>
-                <div className="prompt-actions">
-                  <button
-                    className="text-button"
-                    onClick={() => {
-                      matchVersion.current += 1;
-                      setMatchResult(null);
-                      setMatching(false);
-                      patch({
-                        title: "秋日，自有风格",
-                        prompt:
-                          "让林知夏戴着 H001 云朵羊毛帽，在秋日庭院温柔地介绍产品，包含自然走动和转身。镜头克制，光线柔和，体现成熟而从容的生活态度。",
-                        shots: [],
-                      });
-                    }}
-                  >
-                    <Plus size={14} />
-                    填入示例灵感
-                  </button>
+                <div className="prompt-actions preset-actions">
+                  <div className="example-controls">
+                    <label className="example-select">
+                      示例案例
+                      <select
+                        aria-label="示例案例"
+                        value={exampleId}
+                        onChange={(event) => setExampleId(event.target.value)}
+                      >
+                        {CREATION_EXAMPLES.map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <button
+                      className="text-button"
+                      onClick={() => {
+                        matchVersion.current += 1;
+                        setMatchResult(null);
+                        setMatching(false);
+                        patch({
+                          title: example.title,
+                          prompt: example.prompt,
+                          shots: structuredClone(example.shots),
+                          ...(example.duration
+                            ? { duration: example.duration }
+                            : {}),
+                          ...(example.id === "autumn-full-body" && wanMode
+                            ? { wanShotType: "single" as const }
+                            : {}),
+                          ...(example.id === "autumn-full-body" && seedanceMode
+                            ? { seedanceInputMode: "image" as const }
+                            : {}),
+                        });
+                      }}
+                    >
+                      <Plus size={14} />
+                      填入示例灵感
+                    </button>
+                  </div>
                   <button
                     className="button secondary compact"
                     disabled={!draft.prompt.trim() || matching}
@@ -426,6 +504,10 @@ export function Create({
                     {matching ? "解析与检索中…" : "推荐品牌资产"}
                   </button>
                 </div>
+                <p className="example-hint">
+                  {example.hint}{" "}
+                  点击「填入示例灵感」只更新草稿，不自动提交生成。
+                </p>
                 {matchResult && (
                   <MatchPanel
                     result={matchResult}
@@ -445,14 +527,16 @@ export function Create({
                   {picker("voice", "voiceId")}
                 </div>
                 <p className="helper">
-                  此处声音档案仅保留创作关联。如需真实声线复刻与口型同步，请切换「声音复刻与对口型」入口。
+                  {PUBLIC_DEMO
+                    ? "公开版声音档案仅演示创作关联，不进行声音复刻、语音合成或口型生成。"
+                    : "此处声音档案仅保留创作关联。如需真实声线复刻与口型同步，请切换「声音复刻与对口型」入口。"}
                 </p>
                 <div className="section-heading divided">
                   <h2>定义画面的节奏</h2>
                   <SlidersHorizontal size={17} />
                 </div>
                 <div className="field-grid">
-                  {!xyqMode && !wanMode && (
+                  {!xyqMode && !wanMode && !seedanceMode && (
                     <div className="field">
                       <span>画面比例</span>
                       <div
@@ -476,7 +560,7 @@ export function Create({
                       </div>
                     </div>
                   )}
-                  {!xyqMode && !wanMode && (
+                  {!xyqMode && !wanMode && !seedanceMode && (
                     <label className="field">
                       目标时长
                       <select
@@ -498,6 +582,7 @@ export function Create({
                           ))
                         ) : (
                           <>
+                            <option value={5}>5 秒 · 短片目标</option>
                             <option value={12}>12 秒 · 精简叙事</option>
                             <option value={24}>24 秒 · 产品介绍</option>
                             <option value={36}>36 秒 · 生活短片</option>
@@ -520,7 +605,7 @@ export function Create({
                       <option>安静沉思</option>
                     </select>
                   </label>
-                  {!xyqMode && !wanMode && (
+                  {!xyqMode && !wanMode && !seedanceMode && (
                     <label className="field">
                       {realMode ? "视频模型" : "生成方式"}
                       {realMode ? (
@@ -548,7 +633,7 @@ export function Create({
                       ) : (
                         <div className="static-input">
                           <span className="tiny-dot" />
-                          Higgsfield · 本地模拟
+                          内置样片 · 模拟生成
                         </div>
                       )}
                     </label>
@@ -656,11 +741,13 @@ export function Create({
                 </div>
                 <div className="inline-note">
                   <Film size={17} />
-                  {wanMode
-                    ? "仅首帧参考图与文字分镜会提交给万相。模型根据首帧创作新动作，不能保证帽子不变形、人物不漂移；台词和声音档案不代表已做声线克隆。"
-                    : realMode || xyqMode
-                      ? "本次将分镜编译为一条短视频提示词，提交所选参考图。分镜用于表达意图，不能保证逐镜精确表演；台词是提示信息，尚未做克隆声线与口型同步。"
-                      : "演示任务约 22 秒完成；输出为内置 6 秒静态素材动态样片，不是 AI 表演或声音克隆结果。"}
+                  {seedanceMode
+                    ? "仅需求、情绪和文字分镜，以及图生模式所选的单张首帧会提交给 Seedance。文生模式不发送参考图；人物、帽子细节和逐镜表演仍需验证。台词不是已完成的克隆声音或口型同步。"
+                    : wanMode
+                      ? "仅首帧参考图与文字分镜会提交给万相。模型根据首帧创作新动作，不能保证帽子不变形、人物不漂移；台词和声音档案不代表已做声线克隆。"
+                      : realMode || xyqMode
+                        ? "本次将分镜编译为一条短视频提示词，提交所选参考图。分镜用于表达意图，不能保证逐镜精确表演；台词是提示信息，尚未做克隆声线与口型同步。"
+                        : "演示任务约 22 秒完成；输出为内置 6 秒静态素材动态样片，不是 AI 表演或声音克隆结果。"}
                 </div>
               </>
             )}
@@ -734,6 +821,7 @@ export function Create({
                     disabled={
                       submitting ||
                       (realMode && !realAvailable) ||
+                      (seedanceMode && !seedanceReady) ||
                       (wanMode && !wanReady) ||
                       (xyqMode && !xyqReady)
                     }
@@ -752,13 +840,15 @@ export function Create({
                     )}
                     {submitting
                       ? "正在提交…"
-                      : wanMode
-                        ? "提交万相真实生成 · 按量计费"
-                        : xyqMode
-                          ? "提交小云雀真实生成 · 消耗积分"
-                          : realMode
-                            ? "提交真实生成 · 按调用计费"
-                            : "提交模拟生成"}
+                      : seedanceMode
+                        ? "提交 Seedance 真实生成"
+                        : wanMode
+                          ? "提交万相真实生成 · 按量计费"
+                          : xyqMode
+                            ? "提交小云雀真实生成 · 消耗积分"
+                            : realMode
+                              ? "提交真实生成 · 按调用计费"
+                              : "提交模拟生成"}
                   </button>
                 </div>
               )}
@@ -792,18 +882,26 @@ export function Create({
                 </div>
               ))}
               <div className="spec-summary">
-                <span>{wanMode ? "比例随首帧" : draft.ratio}</span>
+                <span>
+                  {seedanceMode
+                    ? "比例由模型决定"
+                    : wanMode
+                      ? "比例随首帧"
+                      : draft.ratio}
+                </span>
                 <span>目标 {draft.duration}s</span>
                 <span>{draft.mood}</span>
               </div>
               <p className="helper">
-                {wanMode
-                  ? "实际传入的首帧见上方万相配置。其他选中素材仅保留创作档案；成功视频会自动保存到本机成品库。"
-                  : xyqMode
-                    ? "三张参考图将提交到小云雀，生成结果自动下载回本机成品库。人物、动作和商品细节仍需人工审核。"
-                    : realMode
-                      ? "所选参考图由服务端上传并缓存复用。跨镜头人物、动作和商品细节需要人工审核。声音档案仅演示关联。"
-                      : "已保存的资产会自动带入创作，无需重复上传。声音档案仅演示关联。"}
+                {seedanceMode
+                  ? "实际输入方式和首帧见上方 Seedance 配置。独立商品、场景和声音档案仅保留关联；成功视频会下载回本机成品库。画面比例由模型和参考图决定。"
+                  : wanMode
+                    ? "实际传入的首帧见上方万相配置。其他选中素材仅保留创作档案；成功视频会自动保存到本机成品库。"
+                    : xyqMode
+                      ? "三张参考图将提交到小云雀，生成结果自动下载回本机成品库。人物、动作和商品细节仍需人工审核。"
+                      : realMode
+                        ? "所选参考图由服务端上传并缓存复用。跨镜头人物、动作和商品细节需要人工审核。声音档案仅演示关联。"
+                        : "已保存的资产会自动带入创作，无需重复上传。声音档案仅演示关联。"}
               </p>
             </div>
           </aside>

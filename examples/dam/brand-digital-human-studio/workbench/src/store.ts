@@ -1,9 +1,22 @@
-import { mediaAsset } from "./media";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createSeed } from "./data";
 import type { StudioState, Task } from "./types";
-import { api, providerApiRoot, type RemoteGeneration } from "./api";
+import {
+  api,
+  providerApiRoot,
+  PUBLIC_DEMO,
+  type RemoteGeneration,
+} from "./api";
+import { mediaAsset } from "./media";
 const KEY = "bytefolk-brand-digital-human-studio-v1";
+function normalizeAsset(asset: StudioState["assets"][number]) {
+  return {
+    ...asset,
+    image: asset.image.startsWith("/media/")
+      ? mediaAsset(asset.image.slice(7))
+      : asset.image,
+  };
+}
 function readState(): StudioState {
   try {
     const s = JSON.parse(localStorage.getItem(KEY) || "null");
@@ -13,7 +26,17 @@ function readState(): StudioState {
       Array.isArray(s.tasks) &&
       s.draft
     )
-      return s;
+      return {
+        ...s,
+        assets: s.assets.map(normalizeAsset),
+        draft: PUBLIC_DEMO ? { ...s.draft, mode: "demo" } : s.draft,
+        tasks: s.tasks
+          .filter((task: Task) => !PUBLIC_DEMO || !task.provider)
+          .map((task: Task) => ({
+            ...task,
+            assets: task.assets.map(normalizeAsset),
+          })),
+      };
   } catch {
     /* Fall back to recoverable demo data. */
   }
@@ -101,6 +124,9 @@ export function useStudio() {
                               ? (result.status as Task["status"])
                               : t.status,
                       providerStatus: result.providerStatus || result.status,
+                      providerTaskId: result.remoteTaskId || t.providerTaskId,
+                      providerModelId: result.modelId || t.providerModelId,
+                      providerProtocol: result.protocol || t.providerProtocol,
                       resultUrl: result.video,
                       canCancel: result.canCancel,
                       error: result.error,
@@ -162,4 +188,20 @@ export function downloadPath(task: Task) {
   return task.provider && task.remoteRequestId
     ? `${providerApiRoot(task.provider)}/requests/${task.remoteRequestId}/download`
     : mediaPath(task);
+}
+export function ratioLabel(task: Task) {
+  if (task.provider === "seedance") return "比例由模型决定";
+  return task.provider === "wan" || task.provider === "speech"
+    ? "比例随人物图"
+    : task.draft.ratio;
+}
+export function seedanceReferenceLabel(task: Task) {
+  if (task.draft.seedanceInputMode === "text") return "文生视频 · 未提交参考图";
+  if (task.draft.seedanceReferenceUrl) return "填写的外部参考图链接";
+  return (
+    task.assets.find(
+      (a) =>
+        a.id === (task.draft.seedanceFrameAssetId || task.draft.characterId),
+    )?.name || "未记录参考图"
+  );
 }

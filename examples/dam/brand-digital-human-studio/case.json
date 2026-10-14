@@ -16,7 +16,7 @@
   "source": {
     "date": "2026-10-14",
     "kind": "business-discussion",
-    "summary": "从品牌内容制作的业务讨论抽象为公开技术验证案例，仅收录虚构人物、商品、原创合成图和本地示意样片。私人消息、真人素材、报价及账号记录不发布；真实生成和客户质量验收尚未完成。",
+    "summary": "从品牌内容制作需求抽象为公开技术验证案例，仅收录虚构素材及示意样片。客户身份、对话、真实素材与成片、报价、凭据及任务记录不发布；公开版本不进行真实模型调用，客户效果未验收。",
     "customerConfirmed": false
   },
   "dataMode": "synthetic",
@@ -58,7 +58,7 @@
       "id": "outputs",
       "title": "预览审核与配置复用",
       "mode": "local",
-      "description": "媒体预览下载、审核标记、收藏、配置JSON导出和再次创作；不是永久文件归档。"
+      "description": "媒体预览下载、审核收藏、JSON导出复用；真实结果封面读取视频帧，报错摘要/详情，不上传真实成片。当前浏览器和本机文件，非企业永久共享归档。"
     },
     {
       "id": "higgsfield-adapter",
@@ -88,7 +88,7 @@
       "id": "wan-adapter",
       "title": "阿里云万相视频适配代码",
       "mode": "unavailable",
-      "description": "页面Key配置、单首帧视频、异步查询与本机媒体适配；仅模拟响应验证，没有真实账号成功回执。"
+      "description": "页面支持官方/兼容视频网关协议、Base URL及模型别名；单图视频、异步查询、渠道拒绝/待核对与原结果归档。公开仓库只有隔离模拟响应证据，真实账号及质量需用户验证，目录不调用API。"
     },
     {
       "id": "audio-library",
@@ -101,6 +101,12 @@
       "title": "小云雀可选CLI适配",
       "mode": "unavailable",
       "description": "官方CLI1.0.38视频适配、查询与本机下载代码，默认关闭；真实授权与调用未验证。"
+    },
+    {
+      "id": "seedance-adapter",
+      "title": "Seedance视频适配代码",
+      "mode": "unavailable",
+      "description": "独立Base URL与Key、文生或单图参考、doubao-seedance-2-0-fast-260128、5秒720P、任务与本机媒体；网址版17项Seedance软件检查、桌面/手机隔离代理及6项目录回归通过。真实账号/Base64/下载与效果未验收，无多图/声线/模型导出。"
     }
   ]
 }

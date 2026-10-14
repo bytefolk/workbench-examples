@@ -19,3 +19,7 @@
 `admin@muse.demo` 与 `creator@muse.demo` 的密码均为 `Muse2026!`，是公开虚构演示凭据。退出删除两类存储中的登录命名空间，保留工作空间键和后端供应商配置/Key，不取消云任务；不能当作平台注销或凭据撤销。跨设备登录、企业成员、授权及审计属于后续建设。
 
 上传URL绑定云账号和模型，48小时临时存储，复刻录音与对口型文件分别上传。原录音、新语音、MP4和浏览器配置分别备份。客户文件、Key、平台签名地址和运行状态不入Git；删除浏览器数据不删除云声线。
+
+## Seedance 配置与任务
+
+SeedanceConfig保存在忽略的 `seedance/settings.json`，按匿名浏览器会话独立于阿里云，包含baseUrl、Key及启用设置；返回配置状态和规范化Base URL，不回显Key，不进入浏览器持久存储或JSON导出，尚无生产加密库。SeedanceRequest包含本机UUID、输入快照、提交时Base URL、模型、模式、实际单图/文字、平台taskId（前端Task.providerTaskId）、归一状态、取回错误和本机MP4路径，记录在忽略的 `seedance/`。本机submitting/submission_unknown不代表远端成功；合成提示词1500字符为Demo限制，非官方已确认上限。固定第一期5秒720P，不把三资产或声线档案混成真实模型输入。外部原结果URL为临时地址，文件下载后才可标本机完成；清配置不删除云任务、不撤销Key、不删除已下载MP4；换网址或Key后旧云任务需恢复提交时配置查询。

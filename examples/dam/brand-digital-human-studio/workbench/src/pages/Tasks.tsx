@@ -13,8 +13,31 @@ import {
 } from "lucide-react";
 import type { Task, TaskStatus } from "../types";
 import { statusLabels } from "../types";
-import { dateLabel, getProgress, isActive } from "../store";
+import {
+  dateLabel,
+  getProgress,
+  isActive,
+  mediaPath,
+  ratioLabel,
+  seedanceReferenceLabel,
+} from "../store";
 import { Empty, Modal, PageHeader, SearchBox, Status } from "../components/UI";
+import { VideoCover } from "../components/VideoCover";
+import "./task-layout.css";
+
+function summarizeTaskError(error: string) {
+  if (/no available channel/i.test(error))
+    return "当前模型暂无可用生成通道，请查看平台完整报错。";
+  if (/may contain real person|InputImageSensitiveContentDetected/i.test(error))
+    return "人物参考图未通过平台审核，请查看完整报错。";
+  if (
+    /(人物|人脸|face|portrait|person)/i.test(error) &&
+    /(未通过|不通过|审核失败|rejected|verification failed)/i.test(error)
+  )
+    return "人物参考图未通过平台审核，请查看完整报错。";
+  const summary = error.replace(/\s+/g, " ").trim();
+  return summary.length > 96 ? `${summary.slice(0, 96)}…` : summary;
+}
 export function Tasks({
   tasks,
   now,
@@ -107,8 +130,15 @@ export function Tasks({
         />
       </div>
       {filtered.length ? (
-        <div className="table-container">
+        <div className="table-container task-layout-container">
           <table className="task-table">
+            <colgroup>
+              <col className="task-column-name" />
+              <col className="task-column-status" />
+              <col className="task-column-spec" />
+              <col className="task-column-date" />
+              <col className="task-column-actions" />
+            </colgroup>
             <thead>
               <tr>
                 <th>创作任务</th>
@@ -126,26 +156,40 @@ export function Tasks({
                       className="task-name"
                       onClick={() => setDetail(t.id)}
                     >
-                      <img
-                        src={
-                          t.assets.find((a) => a.kind === "character")?.image ||
-                          mediaAsset("portrait.png")
-                        }
-                        alt=""
-                      />
+                      {t.provider && t.status === "completed" ? (
+                        <VideoCover src={mediaPath(t)} label={t.title} />
+                      ) : (
+                        <img
+                          src={
+                            t.assets.find((a) => a.kind === "character")
+                              ?.image || mediaAsset("portrait.png")
+                          }
+                          alt=""
+                        />
+                      )}
                       <span>
                         <strong>{t.title}</strong>
                         <small>
                           {t.id} ·{" "}
                           {t.provider === "speech"
                             ? "语音驱动单段视频"
-                            : `${t.draft.shots.length} 个镜头`}
+                            : t.provider === "seedance"
+                              ? "Seedance · 视频生成"
+                              : `${t.draft.shots.length} 个镜头`}
                         </small>
                       </span>
                     </button>
                   </td>
                   <td>
-                    <Status status={t.status} />
+                    <Status
+                      status={t.status}
+                      label={
+                        isActive(t) &&
+                        t.providerStatus?.toLowerCase() === "submission_unknown"
+                          ? "待核对"
+                          : undefined
+                      }
+                    />
                     {isActive(t) && !t.provider && (
                       <div className="progress-row">
                         <div
@@ -163,28 +207,58 @@ export function Tasks({
                     )}
                     {isActive(t) && t.provider && (
                       <small className="task-subtext">
-                        {(t.provider === "wan" || t.provider === "speech") &&
-                        t.providerStatus === "SUBMITTING"
-                          ? "正在提交万相平台"
-                          : (t.provider === "wan" || t.provider === "speech") &&
-                              t.providerStatus === "SUCCEEDED"
-                            ? "生成成功 · 正在下载成片"
-                            : t.status === "queued"
-                              ? "平台排队中"
-                              : "平台处理中 · 不提供百分比"}
+                        {t.providerStatus?.toLowerCase() ===
+                        "submission_unknown"
+                          ? "提交结果待确认 · 不会自动重新生成"
+                          : t.provider === "seedance" &&
+                              t.providerStatus?.toLowerCase() === "submitting"
+                            ? "正在提交 Seedance"
+                            : t.provider === "seedance" &&
+                                ["success", "succeeded", "completed"].includes(
+                                  (t.providerStatus || "").toLowerCase(),
+                                )
+                              ? "生成成功 · 正在保存成片"
+                              : (t.provider === "wan" ||
+                                    t.provider === "speech") &&
+                                  t.providerStatus === "SUBMITTING"
+                                ? "正在提交万相平台"
+                                : (t.provider === "wan" ||
+                                      t.provider === "speech") &&
+                                    [
+                                      "success",
+                                      "succeeded",
+                                      "completed",
+                                    ].includes(
+                                      (t.providerStatus || "").toLowerCase(),
+                                    )
+                                  ? "生成成功 · 正在下载成片"
+                                  : t.status === "queued"
+                                    ? "平台排队中"
+                                    : t.provider === "wan"
+                                      ? "生成或成片回收中 · 每 15 秒查询，保存完成后展示"
+                                      : "平台处理中 · 不提供百分比"}
                       </small>
                     )}
                     {t.error && (
-                      <small className="task-subtext">{t.error}</small>
+                      <div className="task-error-summary">
+                        <small>{summarizeTaskError(t.error)}</small>
+                        <button
+                          type="button"
+                          className="text-button"
+                          aria-label={`查看报错 ${t.title}`}
+                          onClick={() => setDetail(t.id)}
+                        >
+                          查看报错
+                        </button>
+                      </div>
                     )}
                   </td>
                   <td>
                     <span>
-                      {t.provider === "wan" || t.provider === "speech"
-                        ? "比例随人物图"
-                        : t.draft.ratio}{" "}
-                      ·{" "}
-                      {t.provider === "wan" || t.provider === "speech"
+                      {ratioLabel(t)} ·{" "}
+                      {t.provider === "wan" ||
+                      t.provider === "speech" ||
+                      t.provider === "seedance"
                         ? t.draft.resolution || "720p"
                         : t.provider === "xiaoyunque"
                           ? t.draft.xyqResolution || "平台档位"
@@ -260,20 +334,34 @@ export function Tasks({
       <p className="table-footnote">
         <Clock3 size={14} />
         模拟任务约 22 秒完成；真实任务查询供应商结果，不显示模拟进度。Higgsfield
-        仅排队可取消，万相与小云雀暂不支持在此取消。
+        仅排队可取消，Seedance、万相与小云雀暂不支持在此取消。
       </p>
       {task && (
         <Modal title="任务详情" onClose={() => setDetail(null)}>
-          <div className="modal-body">
+          <div className="modal-body task-detail-body">
             <div className="detail-task-heading">
               <h2>{task.title}</h2>
-              <Status status={task.status} />
+              <Status
+                status={task.status}
+                label={
+                  isActive(task) &&
+                  task.providerStatus?.toLowerCase() === "submission_unknown"
+                    ? "待核对"
+                    : undefined
+                }
+              />
             </div>
             <dl className="detail-list">
               <div>
                 <dt>任务编号</dt>
                 <dd>{task.id}</dd>
               </div>
+              {task.provider === "seedance" && (
+                <div>
+                  <dt>平台任务编号</dt>
+                  <dd>{task.providerTaskId || "尚未取得，请查看任务状态"}</dd>
+                </div>
+              )}
               <div>
                 <dt>创建时间</dt>
                 <dd>{dateLabel(task.createdAt)}</dd>
@@ -281,10 +369,8 @@ export function Tasks({
               <div>
                 <dt>目标规格</dt>
                 <dd>
-                  {task.provider === "wan" || task.provider === "speech"
-                    ? "比例随人物图"
-                    : task.draft.ratio}{" "}
-                  / {Number(task.draft.duration.toFixed(1))} 秒
+                  {ratioLabel(task)} / {Number(task.draft.duration.toFixed(1))}{" "}
+                  秒
                 </dd>
               </div>
               <div>
@@ -292,13 +378,15 @@ export function Tasks({
                 <dd>
                   {task.provider === "speech"
                     ? `阿里云对口型 · ${task.draft.modelId}`
-                    : task.provider === "wan"
-                      ? `阿里云万相 · ${task.draft.modelId}`
-                      : task.provider === "xiaoyunque"
-                        ? `小云雀 · ${task.draft.modelId}`
-                        : task.provider === "higgsfield"
-                          ? `Higgsfield · ${task.draft.modelId}`
-                          : "本地模拟 · 未调用 API"}
+                    : task.provider === "seedance"
+                      ? `Seedance · ${task.draft.modelId}`
+                      : task.provider === "wan"
+                        ? `万相 · ${task.providerProtocol === "gateway" ? "通用视频网关 · " : ""}${task.providerModelId || task.draft.modelId}`
+                        : task.provider === "xiaoyunque"
+                          ? `小云雀 · ${task.draft.modelId}`
+                          : task.provider === "higgsfield"
+                            ? `Higgsfield · ${task.draft.modelId}`
+                            : "本地模拟 · 未调用 API"}
                 </dd>
               </div>
             </dl>
@@ -311,10 +399,18 @@ export function Tasks({
             <h3>
               {task.provider === "speech"
                 ? "创作档案（提交人物图与新语音）"
-                : task.provider === "wan"
-                  ? "创作资产快照（仅首帧提交）"
-                  : "引用资产快照"}
+                : task.provider === "seedance"
+                  ? "创作档案（实际输入见下方）"
+                  : task.provider === "wan"
+                    ? "创作资产快照（仅首帧提交）"
+                    : "引用资产快照"}
             </h3>
+            {task.provider === "seedance" && (
+              <p className="helper">
+                实际参考：{seedanceReferenceLabel(task)}
+                。其他独立商品、场景和声线只保留档案，未额外提交。
+              </p>
+            )}
             {task.provider === "speech" && (
               <p className="helper">
                 人物图与已生成的新台词音频用于对口型；其他商品、场景及分镜仅保留在创作档案中。声线
@@ -354,7 +450,12 @@ export function Tasks({
                 {task.provider ? "平台生成与结果返回" : "模拟生成与成品归档"}
               </div>
             </div>
-            {task.error && <p className="error-message">{task.error}</p>}
+            {task.error && (
+              <section className="task-error-detail" aria-label="完整任务报错">
+                <h3>完整报错</h3>
+                <pre tabIndex={0}>{task.error}</pre>
+              </section>
+            )}
             <button
               className="button full"
               disabled={!!task.provider && isActive(task) && !task.canCancel}

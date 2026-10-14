@@ -12,7 +12,9 @@ import {
   FolderOpen,
   WandSparkles,
 } from "lucide-react";
-import type { Asset, AssetKind } from "../types";
+import type { Asset, AssetKind, Task } from "../types";
+import { VideoCover } from "../components/VideoCover";
+import { mediaPath } from "../store";
 import { kindLabels } from "../types";
 import {
   AssetImage,
@@ -22,9 +24,11 @@ import {
   SearchBox,
 } from "../components/UI";
 import { SoulPanel } from "../components/SoulPanel";
-import type { ProviderConfig } from "../api";
+import { PUBLIC_DEMO, type ProviderConfig } from "../api";
 interface Props {
   assets: Asset[];
+  featuredTask?: Task;
+  onPreview: (task: Task) => void;
   onCreate: (asset?: Asset) => void;
   onAdd: (asset: Asset) => boolean;
   onFavorite: (id: string) => void;
@@ -33,6 +37,8 @@ interface Props {
 }
 export function Assets({
   assets,
+  featuredTask,
+  onPreview,
   onCreate,
   onAdd,
   onFavorite,
@@ -70,20 +76,38 @@ export function Assets({
           新建视频
         </button>
       </PageHeader>
-      <section className="collection-banner">
-        <img
-          src={mediaAsset("portrait.png")}
-          alt="秋日服饰主题，虚构品牌人物佩戴羊毛帽"
-        />
+      <section
+        className={`collection-banner${featuredTask ? " has-generated-video" : ""}`}
+      >
+        {featuredTask ? (
+          <VideoCover
+            src={mediaPath(featuredTask)}
+            label={featuredTask.title}
+          />
+        ) : (
+          <img
+            src={mediaAsset("portrait.png")}
+            alt="秋日服饰主题，虚构品牌人物佩戴羊毛帽"
+          />
+        )}
         <div>
           <span className="collection-line" />
-          <h2>秋日，自有风格</h2>
-          <p>2026 秋冬内容计划</p>
-          <button onClick={() => onCreate()}>
-            开启秋日创作 <ArrowUpRight size={16} />
+          <h2>{featuredTask?.title || "秋日，自有风格"}</h2>
+          <p>
+            {featuredTask ? "最近生成作品 · 视频画面" : "2026 秋冬内容计划"}
+          </p>
+          <button
+            onClick={() =>
+              featuredTask ? onPreview(featuredTask) : onCreate()
+            }
+          >
+            {featuredTask ? "查看生成作品" : "开启秋日创作"}{" "}
+            <ArrowUpRight size={16} />
           </button>
         </div>
-        <span className="collection-index">AUTUMN / 2026</span>
+        <span className="collection-index">
+          {featuredTask ? "LATEST / VIDEO" : "AUTUMN / 2026"}
+        </span>
       </section>
       <div className="asset-tabs" role="tablist" aria-label="资产分类">
         {(["all", "character", "product", "scene", "voice"] as const).map(
@@ -275,7 +299,7 @@ export function Assets({
               <Check size={16} />
               已录入，可在创作中反复引用
             </div>
-            {detail.kind === "character" && (
+            {!PUBLIC_DEMO && detail.kind === "character" && (
               <button
                 className="button secondary full soul-entry"
                 onClick={() => {
@@ -299,7 +323,7 @@ export function Assets({
           </div>
         </Modal>
       )}
-      {soulAsset && (
+      {!PUBLIC_DEMO && soulAsset && (
         <SoulPanel
           asset={soulAsset}
           config={config}

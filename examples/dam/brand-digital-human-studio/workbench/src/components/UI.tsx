@@ -99,11 +99,17 @@ export function AssetImage({
     />
   );
 }
-export function Status({ status }: { status: TaskStatus }) {
+export function Status({
+  status,
+  label,
+}: {
+  status: TaskStatus;
+  label?: string;
+}) {
   return (
     <span className={`status ${status}`}>
       <i />
-      {statusLabels[status]}
+      {label || statusLabels[status]}
     </span>
   );
 }

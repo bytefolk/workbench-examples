@@ -93,45 +93,59 @@ test("demo login rejects wrong credentials, preserves deep links and sessions, a
   ).toBeVisible();
   expect(calls).toEqual([]);
 });
-test("new Wan and voice modes stay offline in the catalog", async ({
+test("public catalog excludes provider credentials and live generation controls", async ({
   page,
 }) => {
-  const apiCalls: string[] = [];
+  const calls: string[] = [];
   page.on("request", (r) => {
-    if (new URL(r.url()).pathname.includes("/api/")) apiCalls.push(r.url());
+    if (new URL(r.url()).pathname.includes("/api/")) calls.push(r.url());
   });
   await page.goto(entry + "#create");
   await signIn(page);
-  await page.getByRole("button", { name: /阿里云万相真实 API/ }).click();
-  await expect(page.getByLabel("万相视频模型").locator("option")).toHaveCount(
-    3,
-  );
-  await page.getByLabel("万相视频模型").selectOption("wan2.6-i2v");
   await expect(
-    page.getByText("模型原生有声 · 不等于克隆人物声线", { exact: true }),
-  ).toBeVisible();
-  await page.getByLabel("万相视频模型").selectOption("wan2.2-i2v-flash");
-  await expect(page.getByText("无声视频", { exact: true })).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "配置阿里云", exact: true }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: /声音复刻与对口型/ }).click();
-  await expect(
-    page.getByRole("heading", { name: /上传并试听录音/ }),
+    page.getByText("公开演示 · 仅模拟", { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", {
-      name: "提交对口型视频 · 按量计费",
-      exact: true,
+      name: /Seedance 真实视频生成|万相真实视频生成|Higgsfield 真实 API|声音复刻与对口型/,
     }),
-  ).toBeDisabled();
-  const image = page.getByAltText("对口型人物参考");
-  await expect
-    .poll(() => image.evaluate((i) => (i as HTMLImageElement).naturalWidth))
-    .toBeGreaterThan(0);
-  await expect(image).toHaveAttribute("src", "./media/portrait.png");
-  expect(apiCalls).toEqual([]);
+  ).toHaveCount(0);
+  await expect(page.getByLabel(/API Key/)).toHaveCount(0);
+  expect(calls).toEqual([]);
 });
+
+test("full body preset changes the draft only and persists without model requests", async ({
+  page,
+}) => {
+  const calls: string[] = [];
+  page.on("request", (r) => {
+    if (new URL(r.url()).pathname.includes("/api/")) calls.push(r.url());
+  });
+  await page.goto(entry + "#create");
+  await signIn(page);
+  await page.getByLabel("创作名称", { exact: true }).fill("原草稿");
+  await page
+    .getByLabel("示例案例", { exact: true })
+    .selectOption("autumn-full-body");
+  await expect(page.getByLabel("创作名称", { exact: true })).toHaveValue(
+    "原草稿",
+  );
+  await page.getByRole("button", { name: "填入示例灵感", exact: true }).click();
+  await expect(page.getByLabel("创作名称", { exact: true })).toHaveValue(
+    "秋日赴约 · 全身表演与帽子展示",
+  );
+  await expect(page.getByLabel(/^创作需求/)).toHaveValue(/全身/);
+  await page.getByRole("button", { name: "下一步：脚本与分镜" }).click();
+  await expect(
+    page.getByText("全身赴约 · 连续镜头", { exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel("创作名称", { exact: true })).toHaveValue(
+    "秋日赴约 · 全身表演与帽子展示",
+  );
+  expect(calls).toEqual([]);
+});
+
 test("catalog retains both entries; MUSE assets are scoped and live API stays disabled", async ({
   page,
 }) => {
@@ -165,12 +179,12 @@ test("catalog retains both entries; MUSE assets are scoped and live API stays di
     )
     .toBeGreaterThan(0);
   await page.getByRole("button", { name: "新建视频", exact: true }).click();
-  await page.getByRole("button", { name: /Higgsfield 真实 API/ }).click();
   await expect(
-    page.getByText(
-      "此目录入口仅运行免费模拟。真实验证请按案例说明单独启动工作台和本机代理。",
-    ),
+    page.getByText("公开演示 · 仅模拟", { exact: true }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /Higgsfield 真实 API/ }),
+  ).toHaveCount(0);
   await page.getByRole("button", { name: "下一步：脚本与分镜" }).isVisible();
   expect(calls).toEqual([]);
 });

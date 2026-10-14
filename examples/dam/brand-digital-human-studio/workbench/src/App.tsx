@@ -12,6 +12,7 @@ import type { Asset, Page, Task } from "./types";
 import type { DemoUser } from "./demoAuth";
 import {
   api,
+  PUBLIC_DEMO,
   providerApiRoot,
   type ProviderConfig,
   type RemoteGeneration,
@@ -76,7 +77,8 @@ export default function App({
       if (
         task.provider === "xiaoyunque" ||
         task.provider === "wan" ||
-        task.provider === "speech"
+        task.provider === "speech" ||
+        task.provider === "seedance"
       ) {
         setApiError("此平台接入暂不支持取消，请在平台核对任务。");
         return;
@@ -138,6 +140,7 @@ export default function App({
     setSubmitting(true);
     setApiError("");
     const draft = structuredClone(state.draft);
+    if (PUBLIC_DEMO) draft.mode = "demo";
     const time = Date.now();
     const task: Task = {
       id: `MS-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
@@ -154,6 +157,7 @@ export default function App({
             draft.sceneId,
             draft.voiceId,
             draft.wanFrameAssetId,
+            draft.seedanceFrameAssetId,
           ].includes(a.id),
         )
         .map((a) => ({ ...a })),
@@ -165,7 +169,8 @@ export default function App({
         draft.mode === "higgsfield" ||
         draft.mode === "xiaoyunque" ||
         draft.mode === "wan" ||
-        draft.mode === "speech"
+        draft.mode === "speech" ||
+        draft.mode === "seedance"
       ) {
         if (
           draft.mode === "higgsfield" &&
@@ -187,6 +192,9 @@ export default function App({
         );
         task.provider = draft.mode;
         task.remoteRequestId = remote.requestId;
+        task.providerTaskId = remote.remoteTaskId;
+        task.providerModelId = remote.modelId;
+        task.providerProtocol = remote.protocol;
         task.providerStatus = remote.providerStatus || remote.status;
         task.canCancel = remote.canCancel;
         task.resultUrl = remote.video;
@@ -215,13 +223,15 @@ export default function App({
       setToast(
         task.provider === "speech"
           ? "对口型任务已提交，完成后保存到成品库"
-          : task.provider === "wan"
-            ? "万相任务已提交，真实成片将保存回工作台"
-            : task.provider === "xiaoyunque"
-              ? "小云雀任务已提交，结果将下载回工作台成品库"
-              : task.provider === "higgsfield"
-                ? "Higgsfield 已接受任务，正在查询真实状态"
-                : "模拟生成已提交，完成后自动进入成品库",
+          : task.provider === "seedance"
+            ? "Seedance 请求已记录，正在查询平台状态"
+            : task.provider === "wan"
+              ? "万相任务已提交，真实成片将保存回工作台"
+              : task.provider === "xiaoyunque"
+                ? "小云雀任务已提交，结果将下载回工作台成品库"
+                : task.provider === "higgsfield"
+                  ? "Higgsfield 已接受任务，正在查询真实状态"
+                  : "模拟生成已提交，完成后自动进入成品库",
       );
     } catch (error) {
       setApiError(
@@ -263,6 +273,17 @@ export default function App({
         {page === "assets" && (
           <Assets
             assets={state.assets}
+            featuredTask={state.tasks.reduce<Task | undefined>(
+              (latest, task) =>
+                task.provider &&
+                task.status === "completed" &&
+                task.resultUrl &&
+                (!latest || task.createdAt > latest.createdAt)
+                  ? task
+                  : latest,
+              undefined,
+            )}
+            onPreview={(task) => setPreviewId(task.id)}
             config={config}
             onUpdate={(id, patch) =>
               update((s) => ({
@@ -364,9 +385,15 @@ export default function App({
         <Modal title="欢迎来到 MUSE 缪思" onClose={() => setHelp(false)}>
           <div className="modal-body help-body">
             <p>
-              这是品牌数字人技术验证
-              Demo。默认可用模拟模式，也支持通过本地接口代理连接 Higgsfield
-              、阿里云万相、小云雀与阿里云 Qwen。
+              {PUBLIC_DEMO ? (
+                "这是仅模拟的品牌数字人工作台公开演示。不连接任何真实 API，不输入或保存模型密钥；成片为内置 6 秒示意样片。真实 Seedance、万相与声音配置请使用本机完整版。"
+              ) : (
+                <>
+                  这是品牌数字人技术验证
+                  Demo。默认可用模拟模式，也支持通过本地接口代理连接 Higgsfield
+                  、Seedance 视频、阿里云万相、小云雀与阿里云 Qwen。
+                </>
+              )}
             </p>
             <ol>
               <li>
@@ -380,19 +407,24 @@ export default function App({
               <li>
                 <b>跟踪任务</b>
                 <span>
-                  模拟任务约 22 秒完成；真实任务查询供应商结果。Higgsfield
-                  仅排队可取消，万相与小云雀暂不支持取消。
+                  {PUBLIC_DEMO
+                    ? "模拟任务约 22 秒完成，可查看进度或取消；不会调用模型。"
+                    : "模拟任务约 22 秒完成；真实任务查询供应商结果。Higgsfield 仅排队可取消，Seedance、万相与小云雀暂不支持取消。"}
                 </span>
               </li>
               <li>
                 <b>审核成品</b>
-                <span>播放模拟样片或真实结果，审核、下载或复用创作配置。</span>
+                <span>
+                  {PUBLIC_DEMO
+                    ? "播放内置 6 秒示意样片，审核、下载或复用创作配置。"
+                    : "播放模拟样片或真实结果，审核、下载或复用创作配置。"}
+                </span>
               </li>
             </ol>
             <p className="helper">
-              未配置密钥时使用本地规则和内置样片。已配置的真实生成按账号计费。Soul
-              ID
-              仅用于平台人物参考复用；声音复刻、新台词语音和对口型在「声音复刻与对口型」入口操作，分别由你点击生成。当前资产库保存在浏览器中。
+              {PUBLIC_DEMO
+                ? "公开版使用本地规则匹配与内置样片；上传、草稿、任务和审核只保存在当前浏览器。演示登录不代表真实身份验证或权限隔离。"
+                : "未配置密钥时使用本地规则和内置样片。已配置的真实生成按账号计费。Soul ID 仅用于平台人物参考复用；声音复刻、新台词语音和对口型在「声音复刻与对口型」入口操作，分别由你点击生成。当前资产库保存在浏览器中。"}
             </p>
             <button className="button full" onClick={() => setHelp(false)}>
               开始探索
@@ -405,8 +437,9 @@ export default function App({
         <Modal title="重置演示数据" onClose={() => setReset(false)}>
           <div className="modal-body">
             <p>
-              将清除本浏览器中的演示记录，并恢复内置示例。已提交到平台的任务仍可能继续执行；重置不会取消云端任务或删除
-              Soul ID。
+              {PUBLIC_DEMO
+                ? "将清除本浏览器中的模拟记录，并恢复内置示例。"
+                : "将清除本浏览器中的演示记录，并恢复内置示例。已提交到平台的任务仍可能继续执行；重置不会取消云端任务或删除 Soul ID。"}
             </p>
             <div className="button-row">
               <button

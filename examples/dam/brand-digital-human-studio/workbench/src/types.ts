@@ -38,7 +38,10 @@ export interface Draft {
   duration: number;
   mood: string;
   shots: Shot[];
-  mode?: "demo" | "higgsfield" | "xiaoyunque" | "wan" | "speech";
+  mode?: "demo" | "higgsfield" | "xiaoyunque" | "wan" | "speech" | "seedance";
+  seedanceInputMode?: "text" | "image";
+  seedanceFrameAssetId?: string;
+  seedanceReferenceUrl?: string;
   speechText?: string;
   speechAudioId?: string;
   wanFrameAssetId?: string;
@@ -65,8 +68,11 @@ export interface Task {
   error?: string;
   approved: boolean;
   favorite: boolean;
-  provider?: "higgsfield" | "xiaoyunque" | "wan" | "speech";
+  provider?: "higgsfield" | "xiaoyunque" | "wan" | "speech" | "seedance";
   remoteRequestId?: string;
+  providerTaskId?: string;
+  providerModelId?: string;
+  providerProtocol?: "dashscope" | "gateway";
   resultUrl?: string;
   providerStatus?: string;
   canCancel?: boolean;

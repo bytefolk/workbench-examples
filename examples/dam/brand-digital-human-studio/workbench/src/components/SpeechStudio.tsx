@@ -59,7 +59,8 @@ export function SpeechStudio({
   );
   const sample = library.samples.find((s) => s.id === sampleId);
   const audio = library.utterances.find((a) => a.id === draft.speechAudioId);
-  const enabled = !!config?.configured && config.enabled;
+  const enabled =
+    !!config?.configured && config.enabled && config.protocol !== "gateway";
   const pending =
     library.voices.some((v) => v.status === "processing") ||
     library.utterances.some((a) => a.status === "processing");
@@ -200,9 +201,11 @@ export function SpeechStudio({
         </div>
       </div>
       <p className="helper">
-        {enabled
-          ? "本机已配置百炼 Key。复刻、合成语音和生成视频分别计费，均由你点击。"
-          : "请先配置北京地域的百炼通用 API Key。录音可先上传到本机，配置保存不会生成。"}
+        {config?.protocol === "gateway"
+          ? "当前万相配置使用通用视频网关，仅支持视频测试。声音复刻、语音合成和图片对口型需切回百炼官方协议并配置百炼 Key；不会使用网关 Key 发起这些操作。"
+          : enabled
+            ? "本机已配置百炼 Key。复刻、合成语音和生成视频分别计费，均由你点击。"
+            : "请先配置北京地域的百炼通用 API Key。录音可先上传到本机，配置保存不会生成。"}
       </p>
       <div className="field-grid">
         <label className="field">

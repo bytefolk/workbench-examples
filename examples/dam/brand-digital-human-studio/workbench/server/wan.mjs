@@ -3,11 +3,94 @@ import { mkdir, readFile, writeFile, rename, realpath } from "node:fs/promises";
 import path from "node:path";
 import { ApiError } from "./provider.mjs";
 import { WAN_MODELS, wanModel, wanEstimate } from "../shared/wan-models.mjs";
+import {
+  seedanceBase,
+  seedanceStatus,
+  SEEDANCE_DEFAULT_BASE_URL,
+} from "./seedance.mjs";
 export { wanEstimate } from "../shared/wan-models.mjs";
 
 const MODEL = "wan2.6-i2v-flash";
 const UUID = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
 const FINAL = new Set(["completed", "failed", "canceled"]);
+const credentialHash = (value) =>
+  createHash("sha256").update(value).digest("hex");
+const channelUnavailable = (message) =>
+  /no available channel for model/i.test(String(message || ""));
+export function wanApiBase(protocol = "dashscope", value, workspaceId = "") {
+  if (!["dashscope", "gateway"].includes(protocol))
+    throw new ApiError("请选择百炼原生协议或视频网关协议。");
+  const normalize = (input) => {
+    try {
+      return seedanceBase(input);
+    } catch (error) {
+      throw new ApiError(
+        error.message.replaceAll("Seedance", "万相"),
+        error.status || 400,
+      );
+    }
+  };
+  if (protocol === "gateway")
+    return normalize(value ?? SEEDANCE_DEFAULT_BASE_URL);
+  if (value === undefined) return wanBase(workspaceId);
+  const canonical = normalize(value);
+  const original = new URL(value.trim());
+  if (!original.pathname.replace(/\/+$/, "")) {
+    const base = canonical.replace(/\/v1$/, "/api/v1");
+    return base === wanBase() ? wanBase(workspaceId) : base;
+  }
+  if (!canonical.endsWith("/api/v1"))
+    throw new ApiError(
+      "百炼原生地址需填写服务根网址或以 /api/v1 结尾的基础地址；通用视频网关请切换协议。",
+    );
+  return canonical === wanBase() ? wanBase(workspaceId) : canonical;
+}
+function modelAlias(value = "") {
+  if (
+    typeof value !== "string" ||
+    (value && !/^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,127}$/.test(value))
+  )
+    throw new ApiError(
+      "网关模型名称只接受最多 128 位字母、数字及 . _ : / -；请勿填写完整网址或空白。",
+    );
+  if (/https?:|\/\//i.test(value))
+    throw new ApiError("网关模型名称不能填写网址。");
+  return value;
+}
+export function buildWanGatewayInput(draft, image, gatewayModelId = "") {
+  if (draft?.duration !== 5 || draft?.resolution !== "720p")
+    throw new ApiError(
+      "当前视频网关 Demo 只开放 5 秒、720P；账号模型支持范围需实际验证。",
+    );
+  const model = wanModel(draft?.modelId);
+  if (!model) throw new ApiError("请选择已接入的万相视频模型。");
+  const native = buildWanInput(
+    {
+      ...draft,
+      generateAudio: model.audioMode === "always",
+      wanShotType: "single",
+    },
+    image,
+  );
+  return {
+    model: modelAlias(gatewayModelId) || draft.modelId,
+    prompt: native.input.prompt,
+    duration: 5,
+    resolution: "720P",
+    image,
+  };
+}
+const gatewayTask = (data) =>
+  data?.data && typeof data.data === "object" ? data.data : data;
+function gatewayId(task) {
+  const id = task?.task_id || task?.id;
+  if (typeof id !== "string" || !/^[\w.:-]{1,200}$/.test(id))
+    throw new ApiError(
+      "视频网关未返回可识别的任务编号，请核对平台记录，勿重复生成。",
+      502,
+    );
+  return id;
+}
 export function wanBase(workspaceId = "") {
   if (
     typeof workspaceId !== "string" ||
@@ -25,7 +108,11 @@ export function wanError(message, key = "") {
     .replace(/https?:\/\/\S+/g, "[媒体地址]")
     .replace(/(?:Bearer\s+\S+|sk-[a-zA-Z0-9_-]+)/gi, "[密钥已隐藏]");
   if (key) text = text.split(key).join("[密钥已隐藏]");
-  return text.slice(0, 400);
+  text = text.replace(/amax/gi, "视频服务").slice(0, 400);
+  if (channelUnavailable(text) && !text.includes("网关未找到该模型可用渠道"))
+    text +=
+      " 网关未找到该模型可用渠道，请核对控制台模型 ID/别名及 Key 分组，或联系服务方。";
+  return text;
 }
 export function buildWanInput(draft, image) {
   const model = wanModel(draft?.modelId);
@@ -124,11 +211,19 @@ export async function installWan(
   };
   const settings = await readJson(settingsFile);
   const records = await readJson(taskFile);
+  let recovered = false;
   for (const record of Object.values(records))
     if (!record.remoteId && !FINAL.has(record.status)) {
-      record.status = "failed";
-      record.error =
-        "本地服务在提交过程中中断，结果未确认。请先到百炼核对，不会自动重新生成。";
+      const rejected =
+        record.protocol === "gateway" && channelUnavailable(record.error);
+      record.status =
+        rejected || record.protocol !== "gateway" ? "failed" : "in_progress";
+      record.providerStatus = rejected
+        ? "SUBMISSION_REJECTED"
+        : "SUBMISSION_UNKNOWN";
+      record.error ||= `本地服务在提交过程中中断，结果未确认。请先到${record.protocol === "gateway" ? "服务控制台" : "百炼"}核对，不会自动重新生成。`;
+      if (rejected) record.error = wanError(record.error);
+      recovered = true;
     }
   let writes = Promise.resolve();
   function save(file, data) {
@@ -141,13 +236,34 @@ export async function installWan(
       });
     return writes;
   }
+  if (recovered) await save(taskFile, records);
   function config(owner) {
     const local = settings[owner];
-    if (local) return { ...local, source: "page" };
-    const key = env.WAN_API_KEY?.trim() || env.DASHSCOPE_API_KEY?.trim() || "";
+    if (local) {
+      const protocol = local.protocol || "dashscope";
+      return {
+        ...local,
+        protocol,
+        baseUrl: wanApiBase(protocol, local.baseUrl, local.workspaceId || ""),
+        gatewayModelId: modelAlias(local.gatewayModelId || ""),
+        source: "page",
+      };
+    }
+    const protocol = env.WAN_PROTOCOL || "dashscope";
+    const key =
+      env.WAN_API_KEY?.trim() ||
+      (protocol === "dashscope" ? env.DASHSCOPE_API_KEY?.trim() : "") ||
+      "";
     return {
       apiKey: key,
       workspaceId: env.WAN_WORKSPACE_ID || "",
+      protocol,
+      baseUrl: wanApiBase(
+        protocol,
+        env.WAN_BASE_URL,
+        env.WAN_WORKSPACE_ID || "",
+      ),
+      gatewayModelId: modelAlias(env.WAN_GATEWAY_MODEL_ID || ""),
       enabled: env.WAN_ENABLE_REAL === "true",
       source: key ? "environment" : "none",
     };
@@ -159,6 +275,9 @@ export async function installWan(
       enabled: c.enabled,
       source: c.source,
       workspaceId: c.workspaceId,
+      protocol: c.protocol,
+      baseUrl: c.baseUrl,
+      gatewayModelId: c.gatewayModelId,
       region: "cn-beijing",
       model: MODEL,
       models: WAN_MODELS,
@@ -168,10 +287,7 @@ export async function installWan(
   function requireConfig(owner) {
     const c = config(owner);
     if (!c.apiKey || !c.enabled)
-      throw new ApiError(
-        "请先在页面保存百炼 API Key，并开启万相真实生成。",
-        409,
-      );
+      throw new ApiError("请先在页面保存 API Key，并开启万相真实生成。", 409);
     wanBase(c.workspaceId);
     return c;
   }
@@ -188,24 +304,71 @@ export async function installWan(
   app.post(
     "/api/wan/config",
     handle(async (req, res) => {
-      const { apiKey, workspaceId = "", enabled = true } = req.body || {};
-      if (typeof enabled !== "boolean" || typeof workspaceId !== "string")
+      const {
+        apiKey,
+        workspaceId,
+        protocol,
+        baseUrl,
+        gatewayModelId,
+        enabled = true,
+      } = req.body || {};
+      if (
+        typeof enabled !== "boolean" ||
+        (workspaceId !== undefined && typeof workspaceId !== "string")
+      )
         throw new ApiError("配置格式不合法。");
       const previous = config(req.demoOwner);
       if (
         apiKey !== undefined &&
         (typeof apiKey !== "string" ||
           apiKey.length > 512 ||
-          /\s/.test(apiKey.trim()))
+          /[\x00-\x20\x7f]/.test(apiKey.trim()))
       )
         throw new ApiError("请输入完整的 API Key，不能包含空白字符。");
       const key = apiKey?.trim() || previous.apiKey;
       if (!key || key.length < 8) throw new ApiError("请填写完整 API Key。");
-      const workspace = workspaceId.trim();
+      const workspace =
+        workspaceId === undefined ? previous.workspaceId : workspaceId.trim();
       wanBase(workspace);
+      const nextProtocol =
+        protocol === undefined ? previous.protocol : protocol;
+      const defaultPrevious = wanApiBase(
+        previous.protocol,
+        undefined,
+        previous.workspaceId,
+      );
+      const address =
+        baseUrl !== undefined
+          ? baseUrl
+          : nextProtocol !== previous.protocol ||
+              (workspace !== previous.workspaceId &&
+                previous.baseUrl === defaultPrevious)
+            ? undefined
+            : previous.baseUrl;
+      const canonicalBase = wanApiBase(nextProtocol, address, workspace);
+      if (
+        (nextProtocol !== previous.protocol ||
+          canonicalBase !== previous.baseUrl ||
+          (nextProtocol === "dashscope" &&
+            workspace !== previous.workspaceId)) &&
+        !apiKey?.trim()
+      )
+        throw new ApiError(
+          "更改协议或对接网址后，请重新填写该服务的 API Key，避免把原服务密钥发送到新网址。",
+          409,
+        );
       settings[req.demoOwner] = {
         apiKey: key,
         workspaceId: workspace,
+        protocol: nextProtocol,
+        baseUrl: canonicalBase,
+        gatewayModelId: modelAlias(
+          gatewayModelId === undefined
+            ? previous.gatewayModelId
+            : typeof gatewayModelId === "string"
+              ? gatewayModelId.trim()
+              : gatewayModelId,
+        ),
         enabled,
       };
       await save(settingsFile, settings);
@@ -217,45 +380,94 @@ export async function installWan(
     "/api/wan/config/clear",
     handle(async (req, res) => {
       // A blank local profile also disables environment fallback for this session.
-      settings[req.demoOwner] = { apiKey: "", workspaceId: "", enabled: false };
+      settings[req.demoOwner] = {
+        apiKey: "",
+        workspaceId: "",
+        protocol: "dashscope",
+        baseUrl: wanBase(),
+        gatewayModelId: "",
+        enabled: false,
+      };
       await save(settingsFile, settings);
       res.json(publicConfig(req.demoOwner));
     }),
   );
   async function request(c, suffix, body, extraHeaders = {}, asyncCall = true) {
+    if (
+      c.protocol === "gateway" &&
+      !/^\/video\/generations(?:\/[^/]+)?$/.test(suffix)
+    )
+      throw new ApiError(
+        "语音复刻和对口型需要百炼原生协议；视频网关只接入视频生成与查询。",
+        409,
+      );
     let response;
     try {
-      response = await fetchImpl(`${wanBase(c.workspaceId)}${suffix}`, {
-        method: body === undefined ? "GET" : "POST",
-        headers: {
-          Authorization: `Bearer ${c.apiKey}`,
-          "Content-Type": "application/json",
-          ...(body === undefined || !asyncCall
-            ? {}
-            : { "X-DashScope-Async": "enable" }),
-          ...extraHeaders,
+      response = await fetchImpl(
+        `${c.baseUrl || wanBase(c.workspaceId)}${suffix}`,
+        {
+          method: body === undefined ? "GET" : "POST",
+          headers: {
+            Authorization: `Bearer ${c.apiKey}`,
+            "Content-Type": "application/json",
+            ...(body === undefined || !asyncCall || c.protocol === "gateway"
+              ? {}
+              : { "X-DashScope-Async": "enable" }),
+            ...extraHeaders,
+          },
+          body: body === undefined ? undefined : JSON.stringify(body),
+          signal: AbortSignal.timeout(45000),
+          redirect: "error",
         },
-        body: body === undefined ? undefined : JSON.stringify(body),
-        signal: AbortSignal.timeout(45000),
-        redirect: "error",
-      });
+      );
     } catch {
-      throw new ApiError(
-        "万相请求未收到明确响应。提交结果不明时请到百炼核对，不会自动重试生成。",
+      const error = new ApiError(
+        `万相请求未收到明确响应。提交结果不明时请到${c.protocol === "gateway" ? "服务控制台" : "百炼"}核对，不会自动重试生成。`,
         504,
       );
+      error.submissionUnknown = true;
+      throw error;
     }
     const data = await response.json().catch(() => null);
-    if (!response.ok || data?.code) {
+    const gatewayFailure =
+      c.protocol === "gateway" &&
+      (data?.error ||
+        (data?.code !== undefined &&
+          ![0, 200, "0", "200", "success", "SUCCESS"].includes(data.code)));
+    if (
+      !response.ok ||
+      (c.protocol === "gateway" ? gatewayFailure : data?.code)
+    ) {
       const status = [401, 403, 429].includes(response.status)
         ? response.status
         : 502;
-      throw new ApiError(
-        `万相请求失败（${response.status}）：${wanError(data?.message || data?.code || "请检查北京地域 API Key、模型权限、额度和余额。", c.apiKey)}`,
+      const message =
+        data?.error?.message ||
+        (typeof data?.error === "string" ? data.error : undefined) ||
+        data?.message ||
+        data?.code ||
+        "请检查 API Key、模型权限、额度和余额。";
+      const requestId =
+        data?.request_id ||
+        data?.requestId ||
+        data?.error?.request_id ||
+        response.headers.get("x-request-id");
+      const error = new ApiError(
+        `万相请求失败（${response.status}）：${wanError(`${message}${requestId ? `（request ID: ${String(requestId)}）` : ""}`, c.apiKey)}`,
         status,
       );
+      error.submissionRejected =
+        c.protocol === "gateway" && !response.ok && channelUnavailable(message);
+      error.submissionUnknown =
+        !error.submissionRejected &&
+        (response.status >= 500 || response.status === 408);
+      throw error;
     }
-    if (!data) throw new ApiError("万相返回了无法识别的响应。", 502);
+    if (!data) {
+      const error = new ApiError("万相返回了无法识别的响应。", 502);
+      error.submissionUnknown = true;
+      throw error;
+    }
     return data;
   }
   async function bytesFrom(response, max) {
@@ -331,6 +543,8 @@ export async function installWan(
     remoteTaskId: r.remoteId,
     providerStatus: r.providerStatus,
     estimatedCny: r.estimatedCny,
+    modelId: r.actualModelId || r.gatewayModelId || r.modelId,
+    protocol: r.protocol || "dashscope",
   });
   function owned(req) {
     const r = UUID.test(req.params.id) && records[req.params.id];
@@ -339,6 +553,24 @@ export async function installWan(
     return r;
   }
   const submissions = new Set();
+  const gatewayImage = async (source) => {
+    if (typeof source !== "string") throw new ApiError("请选择首帧图片。");
+    if (source.startsWith("https:")) {
+      const url = new URL(source);
+      if (
+        url.username ||
+        url.password ||
+        url.hostname === "localhost" ||
+        url.hostname.includes(":") ||
+        /^(127\.|10\.|192\.168\.|169\.254\.|0\.|172\.(1[6-9]|2\d|3[01])\.)/.test(
+          url.hostname,
+        )
+      )
+        throw new ApiError("不接受本机、内网或带凭证的图片地址。");
+      return checkMediaUrl(source);
+    }
+    return imageData(source);
+  };
   app.post(
     "/api/wan/videos",
     handle(async (req, res) => {
@@ -370,19 +602,34 @@ export async function installWan(
         );
         if (!asset) throw new ApiError("请选择要实际发送给万相的首帧资产。");
         // Validate all text and parameters before fetching any reference media.
-        buildWanInput(draft, "pending");
-        const payload = buildWanInput(draft, await imageData(asset.image));
+        const buildInput =
+          c.protocol === "gateway"
+            ? (value, image) =>
+                buildWanGatewayInput(value, image, c.gatewayModelId)
+            : buildWanInput;
+        buildInput(draft, "pending");
+        const payload = buildInput(
+          draft,
+          await (c.protocol === "gateway"
+            ? gatewayImage(asset.image)
+            : imageData(asset.image)),
+        );
         const record = {
           id: submissionId,
           owner: req.demoOwner,
           fingerprint,
           workspaceId: c.workspaceId,
+          protocol: c.protocol,
+          baseUrl: c.baseUrl,
+          credentialHash: credentialHash(c.apiKey),
+          gatewayModelId: c.gatewayModelId || draft.modelId,
           status: "in_progress",
           providerStatus: "SUBMITTING",
           createdAt: Date.now(),
           nextPoll: 0,
-          estimatedCny: wanEstimate(draft),
+          estimatedCny: c.protocol === "gateway" ? null : wanEstimate(draft),
           modelId: draft.modelId,
+          actualModelId: payload.model,
           frameAssetId: asset.id,
         };
         records[submissionId] = record;
@@ -392,24 +639,62 @@ export async function installWan(
           try {
             const result = await request(
               c,
-              "/services/aigc/video-generation/video-synthesis",
+              c.protocol === "gateway"
+                ? "/video/generations"
+                : "/services/aigc/video-generation/video-synthesis",
               payload,
             );
-            const remote = result.output;
-            if (!remote?.task_id || !UUID.test(remote.task_id))
-              throw new ApiError("万相未返回可识别的真实 task_id。", 502);
-            record.remoteId = remote.task_id;
-            record.providerStatus = remote.task_status || "PENDING";
-            record.status =
-              remote.task_status === "RUNNING" ? "in_progress" : "queued";
+            if (c.protocol === "gateway") {
+              const remote = gatewayTask(result);
+              try {
+                record.remoteId = gatewayId(remote);
+              } catch (error) {
+                error.submissionUnknown = true;
+                throw error;
+              }
+              record.providerStatus = remote.status || "QUEUED";
+              const status = seedanceStatus(remote.status);
+              record.remoteCompleted = status === "completed";
+              record.videoUrl = remote.result_url || remote.url;
+              record.status =
+                status === "completed" ? "in_progress" : status || "queued";
+              if (["failed", "canceled"].includes(record.status))
+                record.error = wanError(
+                  remote.fail_reason ||
+                    remote.error?.message ||
+                    "视频网关生成失败。",
+                  c.apiKey,
+                );
+            } else {
+              const remote = result.output;
+              if (!remote?.task_id || !UUID.test(remote.task_id)) {
+                const error = new ApiError(
+                  "万相未返回可识别的真实 task_id。",
+                  502,
+                );
+                error.submissionUnknown = true;
+                throw error;
+              }
+              record.remoteId = remote.task_id;
+              record.providerStatus = remote.task_status || "PENDING";
+              record.status =
+                remote.task_status === "RUNNING" ? "in_progress" : "queued";
+            }
           } catch (error) {
-            record.status = "failed";
-            record.error = `提交未成功或结果未确认，请核对百炼记录后再决定是否重做。${wanError(error.message, c.apiKey)}`;
+            record.status =
+              c.protocol === "gateway" && error.submissionUnknown
+                ? "in_progress"
+                : "failed";
+            if (error.submissionUnknown)
+              record.providerStatus = "SUBMISSION_UNKNOWN";
+            else if (error.submissionRejected)
+              record.providerStatus = "SUBMISSION_REJECTED";
+            record.error = `${error.submissionRejected ? "提交已被网关拒绝。" : "提交未成功或结果未确认。"}请核对${c.protocol === "gateway" ? "服务控制台" : "百炼"}记录后再决定是否重做。${wanError(error.message, c.apiKey)}`;
           }
           await save(taskFile, records);
         })().catch(() => {
           record.status = "failed";
-          record.error = "本地保存失败，请核对百炼记录，勿重复提交。";
+          record.error = `本地保存失败，请核对${c.protocol === "gateway" ? "服务控制台" : "百炼"}记录，勿重复提交。`;
         });
         res.json(view(record));
       } finally {
@@ -417,25 +702,120 @@ export async function installWan(
       }
     }),
   );
+  async function gatewayDownload(r, c) {
+    const inspect = async (response) => {
+      if (/json|text\//i.test(response.headers.get("content-type") || ""))
+        throw new ApiError("视频网关返回错误内容，未保存为视频。", 502);
+      const bytes = await bytesFrom(response, 120 * 1024 * 1024);
+      if (bytes.length < 16 || bytes.subarray(4, 8).toString() !== "ftyp")
+        throw new ApiError("视频网关返回文件不是 MP4。", 502);
+      return bytes;
+    };
+    try {
+      return await inspect(
+        await fetchImpl(
+          `${c.baseUrl}/videos/${encodeURIComponent(r.remoteId)}/content`,
+          {
+            headers: { Authorization: `Bearer ${c.apiKey}` },
+            signal: AbortSignal.timeout(60000),
+            redirect: "error",
+          },
+        ),
+      );
+    } catch {
+      if (!r.videoUrl)
+        throw new ApiError(
+          "视频已生成，但原结果下载未完成，请稍后查询重取，不会重新生成。",
+          502,
+        );
+      const url = new URL(r.videoUrl);
+      if (
+        url.protocol !== "https:" ||
+        url.username ||
+        url.password ||
+        url.hostname === "localhost" ||
+        url.hostname.includes(":") ||
+        /^(127\.|10\.|192\.168\.|169\.254\.|0\.|172\.(1[6-9]|2\d|3[01])\.)/.test(
+          url.hostname,
+        )
+      )
+        throw new ApiError("结果地址必须为公开 HTTPS 地址。", 502);
+      return inspect(
+        await fetchImpl(await checkMediaUrl(r.videoUrl), {
+          signal: AbortSignal.timeout(60000),
+          redirect: "error",
+        }),
+      );
+    }
+  }
+  function requireTaskConfig(owner, r) {
+    const c = requireConfig(owner);
+    if (
+      c.protocol !== (r.protocol || "dashscope") ||
+      c.baseUrl !== (r.baseUrl || wanBase(r.workspaceId))
+    )
+      throw new ApiError(
+        "当前协议或对接网址与提交任务时不同，请恢复原配置查询。",
+        409,
+      );
+    if (r.credentialHash && credentialHash(c.apiKey) !== r.credentialHash)
+      throw new ApiError(
+        "当前 API Key 与提交任务时不同，请恢复原 Key 查询。",
+        409,
+      );
+    if (c.protocol === "dashscope" && c.workspaceId !== r.workspaceId)
+      throw new ApiError(
+        "当前业务空间与任务提交时不同，请切回原配置查询。",
+        409,
+      );
+    return c;
+  }
   const polling = new Map();
   app.get(
     "/api/wan/requests/:id",
     handle(async (req, res) => {
       const r = owned(req);
-      if (FINAL.has(r.status) || !r.remoteId || Date.now() < r.nextPoll)
-        return res.json(view(r));
+      if (FINAL.has(r.status) || !r.remoteId) return res.json(view(r));
+      const c = requireTaskConfig(req.demoOwner, r);
+      if (Date.now() < r.nextPoll) return res.json(view(r));
       if (!polling.has(r.id))
         polling.set(
           r.id,
           (async () => {
-            const c = requireConfig(req.demoOwner);
-            if (c.workspaceId !== r.workspaceId)
-              throw new ApiError(
-                "当前业务空间与任务提交时不同，请切回原配置查询。",
-                409,
-              );
             r.nextPoll = Date.now() + 15000;
-            if (!r.videoUrl) {
+            if (c.protocol === "gateway" && !r.remoteCompleted) {
+              const remote = gatewayTask(
+                await request(
+                  c,
+                  `/video/generations/${encodeURIComponent(r.remoteId)}`,
+                ),
+              );
+              if (
+                (remote.task_id || remote.id) &&
+                gatewayId(remote) !== r.remoteId
+              )
+                throw new ApiError("视频网关返回了不匹配的任务信息。", 502);
+              const status = seedanceStatus(remote.status);
+              if (!status)
+                throw new ApiError(
+                  "视频网关返回未知任务状态，请稍后查询，不会猜测完成。",
+                  502,
+                );
+              r.providerStatus = remote.status;
+              r.remoteCompleted = status === "completed";
+              r.status = r.remoteCompleted ? "in_progress" : status;
+              if (r.remoteCompleted)
+                r.videoUrl = remote.result_url || remote.url;
+              if (["failed", "canceled"].includes(status))
+                r.error = wanError(
+                  remote.fail_reason ||
+                    remote.error?.message ||
+                    remote.error ||
+                    "视频网关生成失败。",
+                  c.apiKey,
+                );
+              await save(taskFile, records);
+            } else if (c.protocol !== "gateway" && !r.videoUrl) {
               const result = await request(c, `/tasks/${r.remoteId}`);
               const output = result.output;
               if (!output || (output.task_id && output.task_id !== r.remoteId))
@@ -472,12 +852,21 @@ export async function installWan(
                 );
               await save(taskFile, records);
             }
-            if (r.videoUrl && !r.mediaFile) {
-              const response = await fetchImpl(
-                await checkMediaUrl(r.videoUrl),
-                { signal: AbortSignal.timeout(60000), redirect: "error" },
-              );
-              const bytes = await bytesFrom(response, 120 * 1024 * 1024);
+            if (
+              (c.protocol === "gateway" ? r.remoteCompleted : r.videoUrl) &&
+              !r.mediaFile
+            ) {
+              const response =
+                c.protocol === "gateway"
+                  ? undefined
+                  : await fetchImpl(await checkMediaUrl(r.videoUrl), {
+                      signal: AbortSignal.timeout(60000),
+                      redirect: "error",
+                    });
+              const bytes =
+                c.protocol === "gateway"
+                  ? await gatewayDownload(r, c)
+                  : await bytesFrom(response, 120 * 1024 * 1024);
               if (bytes.subarray(4, 8).toString() !== "ftyp")
                 throw new ApiError("返回文件不是可播放的 MP4。", 502);
               const folder = path.join(directory, r.id);
@@ -491,7 +880,13 @@ export async function installWan(
               await save(taskFile, records);
             }
             return view(r);
-          })().finally(() => polling.delete(r.id)),
+          })()
+            .catch(async (error) => {
+              r.error = wanError(error.message, c.apiKey);
+              await save(taskFile, records);
+              throw new ApiError(r.error, error.status || 502);
+            })
+            .finally(() => polling.delete(r.id)),
         );
       res.json(await polling.get(r.id));
     }),
@@ -510,5 +905,14 @@ export async function installWan(
     });
   app.get("/api/wan/requests/:id/media", media(false));
   app.get("/api/wan/requests/:id/download", media(true));
-  return { requireConfig, request, bytesFrom, imageData };
+  const requireSpeechConfig = (owner) => {
+    const c = requireConfig(owner);
+    if (c.protocol === "gateway")
+      throw new ApiError(
+        "视频网关当前仅接入视频；声音复刻、语音及对口型需要切回百炼原生协议。",
+        409,
+      );
+    return c;
+  };
+  return { requireConfig: requireSpeechConfig, request, bytesFrom, imageData };
 }

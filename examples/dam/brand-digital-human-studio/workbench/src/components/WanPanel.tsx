@@ -9,6 +9,10 @@ import {
   normalizeWanDraft,
   wanEstimate,
 } from "../../shared/wan-models.mjs";
+const DEFAULT_BASE_URL = {
+  dashscope: "https://dashscope.aliyuncs.com/api/v1",
+  gateway: "https://ai.amaxsmp.com/v1",
+} as const;
 
 export function WanPanel({
   draft,
@@ -25,6 +29,7 @@ export function WanPanel({
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const gateway = config?.protocol === "gateway";
   async function refresh() {
     setError("");
     setBusy(true);
@@ -49,25 +54,30 @@ export function WanPanel({
   const resolution = draft.resolution || "720p";
   const wanDraft = { ...draft, modelId: draft.modelId || "", resolution };
   const shotType = draft.wanShotType || "single";
+  const durations = gateway ? [5] : model?.durations || [];
+  const resolutions = gateway ? ["720p"] : model?.resolutions || [];
   const audioValid =
     !!model &&
     (model.audioMode === "toggle" ||
       (model.audioMode === "always" && draft.generateAudio === true) ||
       (model.audioMode === "none" && draft.generateAudio !== true));
   const ready =
+    !busy &&
     !!config?.configured &&
     !!config.enabled &&
     !!frame &&
     !!model &&
-    model.durations.includes(draft.duration) &&
-    model.resolutions.includes(resolution) &&
-    audioValid &&
-    (shotType === "single" || (shotType === "multi" && model.multiShot));
+    durations.includes(draft.duration) &&
+    resolutions.includes(resolution) &&
+    (gateway || audioValid) &&
+    (gateway ||
+      shotType === "single" ||
+      (shotType === "multi" && model.multiShot));
   useEffect(() => {
     onReady(ready);
     return () => onReady(false);
   }, [ready, onReady]);
-  const estimate = wanEstimate(wanDraft);
+  const estimate = gateway ? null : wanEstimate(wanDraft);
   return (
     <div className="wan-panel" aria-label="阿里云万相配置与参数">
       <div className="integration-actions">
@@ -75,8 +85,8 @@ export function WanPanel({
           {busy
             ? "正在读取本机配置…"
             : config?.configured
-              ? `配置已保存 · 北京地域 · ${config.enabled ? "允许手动生成" : "生成已关闭"}`
-              : "尚未配置百炼 API Key"}
+              ? `配置已保存 · ${gateway ? "通用视频网关" : "百炼官方协议"} · ${config.enabled ? "允许手动生成" : "生成已关闭"}`
+              : "尚未配置视频服务 API Key"}
         </span>
         <div className="button-row">
           <button
@@ -92,7 +102,7 @@ export function WanPanel({
             onClick={() => setOpen(true)}
           >
             <Settings2 size={15} />
-            配置阿里云
+            配置万相
           </button>
         </div>
       </div>
@@ -122,7 +132,17 @@ export function WanPanel({
             aria-label="万相视频模型"
             value={draft.modelId || ""}
             onChange={(e) =>
-              onChange(normalizeWanDraft(wanDraft, e.target.value))
+              onChange(
+                gateway
+                  ? {
+                      modelId: e.target.value,
+                      duration: 5,
+                      resolution: "720p",
+                      generateAudio: false,
+                      wanShotType: "single",
+                    }
+                  : normalizeWanDraft(wanDraft, e.target.value),
+              )
             }
           >
             {!model && (
@@ -142,10 +162,10 @@ export function WanPanel({
             disabled={!model}
             onChange={(e) => onChange({ duration: Number(e.target.value) })}
           >
-            {!model?.durations.includes(draft.duration) && (
+            {!durations.includes(draft.duration) && (
               <option value={draft.duration}>请选择该模型支持的时长</option>
             )}
-            {model?.durations.map((n) => (
+            {durations.map((n) => (
               <option key={n} value={n}>
                 {n} 秒
               </option>
@@ -161,17 +181,17 @@ export function WanPanel({
               onChange({ resolution: e.target.value as Draft["resolution"] })
             }
           >
-            {!model?.resolutions.includes(resolution) && (
+            {!resolutions.includes(resolution) && (
               <option value={resolution}>请选择该模型支持的分辨率</option>
             )}
-            {model?.resolutions.map((item) => (
+            {resolutions.map((item) => (
               <option key={item} value={item}>
                 {item.toUpperCase()}
               </option>
             ))}
           </select>
         </label>
-        {model?.multiShot ? (
+        {!gateway && model?.multiShot ? (
           <label className="field">
             万相镜头方式
             <select
@@ -189,12 +209,18 @@ export function WanPanel({
         ) : (
           <div className="field">
             <span>万相镜头方式</span>
-            <div className="static-input">连续单镜头</div>
+            <div className="static-input">
+              {gateway ? "单张首帧 · 不发送多镜头参数" : "连续单镜头"}
+            </div>
           </div>
         )}
         <div className="field">
           <span>万相声音</span>
-          {model?.audioMode === "toggle" ? (
+          {gateway ? (
+            <div className="static-input">
+              声音由网关模型决定 · 未接入克隆声线或口型驱动
+            </div>
+          ) : model?.audioMode === "toggle" ? (
             <label className="integration-check">
               <input
                 type="checkbox"
@@ -212,7 +238,18 @@ export function WanPanel({
           )}
         </div>
       </div>
-      {model && (
+      {gateway && (
+        <p className="helper">
+          当前通用视频网关只开放单图、5
+          秒、720P，不发送音效开关或多镜头参数。实际模型 ID：
+          {config?.gatewayModelId || draft.modelId || "请选择模型"}
+          。模型是否可用及账号别名以服务控制台为准；本 Demo
+          尚未验证实际账号效果。网关 Key
+          不能用于声音复刻、语音合成或对口型，请恢复百炼官方协议及对应 Key
+          后使用声音入口。
+        </p>
+      )}
+      {!gateway && model && (
         <p className="helper">
           {model.description} 输入需求、情绪和分镜拼接后合计不超过{" "}
           {model.promptLimit}
@@ -231,13 +268,16 @@ export function WanPanel({
         </div>
       )}
       <p className="helper">
-        画面比例随首帧确定，请上传所需横竖比例图片；不会按草稿的横竖屏按钮裁剪。图片宽高需
-        240–8000 像素，PNG 不得含透明通道。
+        {gateway
+          ? "画面比例与声音由所选网关模型决定，不发送独立比例或音频参数。请使用符合所选模型要求的首帧图片；人物一致性、帽子细节及声音仍需人工验证。"
+          : "画面比例随首帧确定，请上传所需横竖比例图片；不会按草稿的横竖屏按钮裁剪。图片宽高需 240–8000 像素，PNG 不得含透明通道。"}
       </p>
       <div className="integration-warning">
-        {estimate === null
-          ? "当前参数暂无可用费用预估，请以平台账单为准。"
-          : `按北京地域官方原价预估 ¥${estimate.toFixed(2)} / 条，实际以账单和账号剩余免费额度为准。`}
+        {gateway
+          ? "网关费用以服务控制台与实际账单为准，不套用阿里云官方报价。"
+          : estimate === null
+            ? "当前参数暂无可用费用预估，请以平台账单为准。"
+            : `按北京地域官方原价预估 ¥${estimate.toFixed(2)} / 条，实际以账单和账号剩余免费额度为准。`}
         点击提交才生成；切换模型和保存配置不会扣生成费用。原生音频不等于品牌声线克隆。
       </div>
       {error && (
@@ -251,6 +291,15 @@ export function WanPanel({
           onClose={() => setOpen(false)}
           onSaved={(c) => {
             setConfig(c);
+            if (c.protocol === "gateway")
+              onChange({
+                duration: 5,
+                resolution: "720p",
+                generateAudio: false,
+                wanShotType: "single",
+              });
+            else if (gateway && model)
+              onChange(normalizeWanDraft(wanDraft, model.id));
             setOpen(false);
           }}
         />
@@ -268,12 +317,29 @@ export function WanSettings({
   onSaved: (c: WanConfig) => void;
 }) {
   const [key, setKey] = useState("");
+  const [protocol, setProtocol] = useState<WanConfig["protocol"]>(
+    config?.protocol || "dashscope",
+  );
+  const [baseUrl, setBaseUrl] = useState(
+    config?.baseUrl || DEFAULT_BASE_URL[config?.protocol || "dashscope"],
+  );
+  const [gatewayModelId, setGatewayModelId] = useState(
+    config?.gatewayModelId || "",
+  );
   const [workspace, setWorkspace] = useState(config?.workspaceId || "");
   const [enabled, setEnabled] = useState(
     config?.configured ? config.enabled : true,
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const changedService =
+    protocol !== (config?.protocol || "dashscope") ||
+    baseUrl.trim().replace(/\/+$/, "") !==
+      (
+        config?.baseUrl || DEFAULT_BASE_URL[config?.protocol || "dashscope"]
+      ).replace(/\/+$/, "") ||
+    (protocol === "dashscope" &&
+      workspace.trim() !== (config?.workspaceId || ""));
   async function save(clear = false) {
     setBusy(true);
     setError("");
@@ -284,7 +350,11 @@ export function WanSettings({
           ? {}
           : {
               ...(key.trim() ? { apiKey: key.trim() } : {}),
-              workspaceId: workspace.trim(),
+              protocol,
+              baseUrl: baseUrl.trim(),
+              gatewayModelId:
+                protocol === "gateway" ? gatewayModelId.trim() : "",
+              workspaceId: protocol === "dashscope" ? workspace.trim() : "",
               enabled,
             },
       );
@@ -311,11 +381,48 @@ export function WanSettings({
         }}
       >
         <p className="helper">
-          使用阿里云百炼北京地域的通用 API
-          Key，供视频、声音复刻和语音合成使用。不会购买会员或自动充值。
+          {protocol === "gateway"
+            ? "使用兼容通用视频生成协议的服务地址及该服务的 Key，当前只接入单图、5 秒、720P。网关 Key 不适用于声音复刻、语音合成或对口型，需要恢复百炼官方协议配置。"
+            : "使用百炼官方视频协议和对应 API Key。声音复刻、语音合成仍要求百炼官方服务与账号权限；填写其他网址不代表它兼容声音接口。"}{" "}
+          不会购买会员、自动充值或自动生成。
         </p>
         <label className="field">
-          百炼 API Key
+          对接协议
+          <select
+            aria-label="万相对接协议"
+            value={protocol}
+            onChange={(event) => {
+              const next = event.target.value as WanConfig["protocol"];
+              setProtocol(next);
+              setBaseUrl(DEFAULT_BASE_URL[next]);
+              setKey("");
+            }}
+          >
+            <option value="dashscope">百炼官方视频协议</option>
+            <option value="gateway">通用视频网关协议</option>
+          </select>
+        </label>
+        <label className="field">
+          接口地址（Base URL）
+          <input
+            type="url"
+            value={baseUrl}
+            maxLength={2048}
+            required
+            autoComplete="off"
+            onChange={(event) => setBaseUrl(event.target.value)}
+            placeholder={DEFAULT_BASE_URL[protocol]}
+          />
+        </label>
+        <p className="helper">
+          {protocol === "gateway"
+            ? "填写服务根地址或 /v1 API 前缀；需要兼容通用视频生成、任务查询和下载接口，不是任意平台网址都能使用。"
+            : "填写兼容百炼官方协议的服务根地址或 /api/v1 API 前缀。"}{" "}
+          HTTPS 服务可用；HTTP 仅限 localhost、127.0.0.1 或 [::1]
+          本机开发。请勿填写具体生成端点、查询参数、片段或网址中的用户名密码。
+        </p>
+        <label className="field">
+          视频服务 API Key
           <input
             type="password"
             autoComplete="new-password"
@@ -323,25 +430,65 @@ export function WanSettings({
             maxLength={512}
             onChange={(e) => setKey(e.target.value)}
             placeholder={
-              config?.configured
-                ? "已配置；留空保留，输入新 Key 替换"
-                : "粘贴你的百炼 API Key"
+              config?.configured && !changedService
+                ? "同一服务已配置；留空保留，输入新 Key 替换"
+                : "粘贴此服务对应的 API Key"
             }
-            required={!config?.configured}
-          />
-        </label>
-        <label className="field">
-          业务空间 ID（可选）
-          <input
-            value={workspace}
-            maxLength={100}
-            onChange={(e) => setWorkspace(e.target.value)}
-            placeholder="从百炼业务空间详情复制 ID，不填完整网址"
+            required={!config?.configured || changedService}
           />
         </label>
         <p className="helper">
-          填写后使用官方业务空间专属域名；留空使用仍可用的北京公共域名。
+          切换协议、实际接口地址或业务空间需要重新填写该服务的 Key；不会自动把旧
+          Key 发到新服务。仅修改同一服务的启用开关或模型别名可留空保留 Key。
         </p>
+        {protocol === "gateway" && (
+          <label className="field">
+            网关模型 ID 或别名（可选）
+            <input
+              value={gatewayModelId}
+              maxLength={128}
+              autoComplete="off"
+              placeholder="留空使用创作页所选万相模型 ID"
+              onChange={(event) => setGatewayModelId(event.target.value)}
+            />
+            <small className="helper">
+              请填写万相视频模型对应的控制台 ID 或别名，并确认支持单图、5
+              秒、720P。填写后会覆盖创作页模型 ID；系统只校验 ID
+              格式，不能自动辨别别名对应的模型或账号权限。
+            </small>
+          </label>
+        )}
+        {protocol === "dashscope" && (
+          <>
+            <label className="field">
+              业务空间 ID（可选）
+              <input
+                value={workspace}
+                maxLength={100}
+                onChange={(e) => {
+                  const currentBase = baseUrl.trim().replace(/\/+$/, "");
+                  const currentWorkspaceBase = workspace.trim()
+                    ? `https://${workspace.trim()}.cn-beijing.maas.aliyuncs.com/api/v1`
+                    : DEFAULT_BASE_URL.dashscope;
+                  if (
+                    currentBase === DEFAULT_BASE_URL.dashscope ||
+                    currentBase === "https://dashscope.aliyuncs.com" ||
+                    currentBase === currentWorkspaceBase
+                  )
+                    setBaseUrl(DEFAULT_BASE_URL.dashscope);
+                  setWorkspace(e.target.value);
+                }}
+                placeholder="从百炼业务空间详情复制 ID，不填完整网址"
+              />
+            </label>
+            <p className="helper">
+              接口地址为百炼默认主域时，填写空间 ID
+              会使用专属域名，保存后回显生效网址；清空 ID
+              则使用北京公共域名。显式自定义其他网址时，以自定义网址为准，空间
+              ID 不会覆盖它。修改空间仍需要重新填写 Key。
+            </p>
+          </>
+        )}
         <label className="integration-check">
           <input
             type="checkbox"
@@ -352,16 +499,22 @@ export function WanSettings({
         </label>
         <p className="helper">
           Key
-          仅在保存时提交给本机后端，保存于项目忽略的本地文件；不写入浏览器持久存储，不回显，也不随创作配置导出。此设置属于当前浏览器会话，清除不会撤销阿里云账号中的
-          Key。
+          仅在保存时提交给本机后端，保存于项目忽略的本地文件；不写入浏览器持久存储，不回显，也不随创作配置导出。清除不会撤销服务账号中的
+          Key，也不会删除已有成品。网关配置不提供品牌克隆声音或口型驱动。
         </p>
         <p className="helper">
           <a
-            href="https://help.aliyun.com/zh/model-studio/get-api-key"
+            href={
+              protocol === "gateway"
+                ? "https://ai.amaxsmp.com/docs/zh/02-api/video-generation/"
+                : "https://help.aliyun.com/zh/model-studio/get-api-key"
+            }
             target="_blank"
             rel="noreferrer"
           >
-            查看官方 API Key 获取说明
+            {protocol === "gateway"
+              ? "查看视频接口说明"
+              : "查看官方 API Key 获取说明"}
           </a>
         </p>
         {error && (
