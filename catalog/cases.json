@@ -14,6 +14,21 @@
       ],
       "status": "prototype",
       "path": "examples/dam/character-material-library"
+    },
+    {
+      "id": "factory-operations",
+      "title": "工厂运营工作台",
+      "summary": "通过照片上报、审批配送与断针回收追溯工厂申领，记录销售拜访与跟进，使用可选择的数据和资产服务。",
+      "domain": "mes",
+      "tags": [
+        "crm",
+        "factory",
+        "approvals",
+        "asset-management",
+        "multi-provider"
+      ],
+      "status": "integrated",
+      "path": "examples/mes/factory-operations"
     }
   ]
 }

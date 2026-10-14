@@ -5,8 +5,10 @@
 ## 从这里开始
 
 - [场景分类](docs/domains.md)：CRM、ERP、MES、DAM 等 16 个业务领域。
-- [案例目录](catalog/cases.json)：机器可读索引，目前包含一个案例。
+- [案例目录](catalog/cases.json)：机器可读索引，目前包含两个案例。
 - [本色 Persona Studio · 企业数字人工作台](examples/dam/character-material-library/README.md)：首个 DAM 案例，含六页工作台、业务规格、合成数据与制作审核闭环。
+- [工厂运营工作台](examples/mes/factory-operations/README.md)：MES 与 CRM 协作，含断针/耗材申领、审批配送、断针回收、销售拜访及真实服务接入代码。
+- [数据提供方契约](docs/data-provider-contract.md)：身份、业务和资产三个独立端口；部署者可选择 Supabase 或实现企业 HTTP API 接入 MySQL 与资产平台。
 - [案例规范](docs/case-standard.md)：目录、元信息、交付状态与验收要求。
 - [新增案例](CONTRIBUTING.md)：从模板开始，提交前执行检查。
 
@@ -16,7 +18,9 @@ npm run check
 npm run demo
 ```
 
-打开 <http://127.0.0.1:4173>。目录入口可按领域筛选；首个案例可管理人物与素材、解析需求、模拟视频任务、人工审核和归档溯源。`npm run demo` 先构建工作台再提供统一目录服务，全部使用合成数据，不连接外部 SaaS 或生成模型。
+打开 <http://127.0.0.1:4173>。目录入口可按领域筛选；`npm run demo` 先构建工作台再提供统一目录服务。Persona Studio 使用合成数据演示素材与模拟视频制作。工厂运营工作台需要配置数据服务并登录，业务记录与附件保存到所选服务；仓库仅提供合成验证输入，不预置真实账号和业务数据。
+
+直接开发工厂工作台可执行 `npm run factory:dev`，打开 <http://127.0.0.1:4318>。不同部署者自由选择数据提供方，Supabase 不是其他案例的必需依赖；MySQL 由企业实现标准 HTTP 后端后接入。
 
 需要 Node.js 22.12 或更新版本。Windows 若使用 `\\wsl.localhost\...` 工作目录，请在 WSL 中执行 npm 命令；Windows npm 的默认脚本 shell 不支持 UNC 工作目录。
 
@@ -45,7 +49,7 @@ tests/                       # 业务边界与仓库检查的验证
 
 ## 案例状态
 
-`proposal → specified → prototype → integrated → verified`。状态表示已有证据覆盖的最高阶段，详细定义见[案例规范](docs/case-standard.md)。首个案例为 **prototype**：素材管理与任务编排可以演示，视频生成、真人形象数字人和产品试戴尚未接入。
+`proposal → specified → prototype → integrated → verified`。状态表示已有证据覆盖的最高阶段，详细定义见[案例规范](docs/case-standard.md)。Persona Studio 为 **prototype**：素材管理与任务编排可以演示，视频生成、真人形象数字人和产品试戴尚未接入。工厂运营工作台为 **integrated**：Supabase 认证、数据库和私有资产存储已在专用 QA 项目完成真实闭环验证；企业 HTTP 客户端本地可用，MySQL 后端尚未接入。具体覆盖见各案例证据记录，二者均未完成客户正式验收。
 
 没有案例的领域仅列在分类字典中；不会用空目录或占位页面表示已有产品。
 

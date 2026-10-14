@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "id": "factory-operations",
+  "title": "工厂运营工作台",
+  "summary": "通过照片上报、审批配送与断针回收追溯工厂申领，记录销售拜访与跟进，使用可选择的数据和资产服务。",
+  "domain": "mes",
+  "tags": ["crm", "factory", "approvals", "asset-management", "multi-provider"],
+  "status": "integrated",
+  "source": {
+    "date": "2026-10-14",
+    "kind": "business-discussion",
+    "summary": "依据已读取的业务听记及后续数据源可替换要求抽象整理；公开范围仅含业务规格、源码和合成验证输入，不保留私人链接、原始对话、真实客户或账号信息。完整客户验收尚未完成。",
+    "customerConfirmed": false
+  },
+  "dataMode": "synthetic",
+  "deliverables": {
+    "overview": "README.md",
+    "requirements": "requirements.md",
+    "workflows": "workflows.md",
+    "dataModel": "data-model.md",
+    "integrations": "integrations.md",
+    "acceptance": "acceptance.md",
+    "evidence": "evidence/verification.md"
+  },
+  "runtime": {
+    "mode": "application",
+    "command": "npm run factory:dev",
+    "entry": "workbench/dist/index.html",
+    "reset": "业务记录保存在所选服务，刷新不重置。使用独立工作区验证，由部署管理员清理测试数据；恢复部署默认配置只清除当前浏览器连接覆盖。"
+  },
+  "capabilities": [
+    {
+      "id": "factory-workflow",
+      "title": "工厂申领与断针追溯",
+      "mode": "local",
+      "description": "上报表单、审批配送、回收确认、完结与时间线界面；数据写入由配置的真实服务执行，没有本地模拟成功。"
+    },
+    {
+      "id": "sales-visits",
+      "title": "销售拜访记录",
+      "mode": "local",
+      "description": "客户拜访、沟通纪要、问题、下一步与跟进日期表单及查询。"
+    },
+    {
+      "id": "provider-contracts",
+      "title": "可替换身份、业务与资产端口",
+      "mode": "local",
+      "description": "独立的 IdentityProvider、OperationsRepository、AssetStore；Supabase 和 HTTP 组合可配置，端口可另行实现与组合。"
+    },
+    {
+      "id": "supabase-deployment",
+      "title": "Supabase 身份、数据库与私有资产",
+      "mode": "connected",
+      "description": "在专用 QA 项目完成真实登录、数据库写入与重登回读、工作区权限、私有资产字节回读、断针回收闭环与拜访验证；不随仓库提供账号或项目配置。"
+    },
+    {
+      "id": "enterprise-data-platform",
+      "title": "MySQL 与企业资产平台",
+      "mode": "unavailable",
+      "description": "提供标准 HTTP 客户端与接口约定；企业后端服务需单独实现和联调，未提供 MySQL 直连。"
+    },
+    {
+      "id": "ai-and-dingtalk",
+      "title": "AI 分析与钉钉通知",
+      "mode": "unavailable",
+      "description": "自动语音/图片分析、AI 总结和钉钉通知没有接入，不以模拟数据表示已执行。"
+    }
+  ]
+}

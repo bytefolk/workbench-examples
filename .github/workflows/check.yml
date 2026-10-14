@@ -21,4 +21,4 @@ jobs:
         if: failure()
         with:
           name: browser-test-results
-          path: examples/dam/character-material-library/workbench/test-results/
+          path: examples/*/*/workbench/test-results/
