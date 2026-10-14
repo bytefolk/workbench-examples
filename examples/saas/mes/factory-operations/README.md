@@ -49,7 +49,7 @@ VITE_DATA_PROVIDER=http
 VITE_API_BASE_URL=https://your-platform.example/api/workbench
 ```
 
-企业服务端需实现 [标准 HTTP 契约](../../../docs/data-provider-contract.md)，负责身份、工作区授权、数据库事务和资产访问。仓库已经提供 HTTP 客户端；不会因选择该选项自动创建 MySQL 服务。
+企业服务端需实现 [标准 HTTP 契约](../../../../docs/data-provider-contract.md)，负责身份、工作区授权、数据库事务和资产访问。仓库已经提供 HTTP 客户端；不会因选择该选项自动创建 MySQL 服务。
 
 身份、业务数据、资产分别通过 `IdentityProvider`、`OperationsRepository`、`AssetStore` 端口接入，也可由部署者组合不同实现。配置和提供方选择不进入业务字段，切换配置不会自动迁移数据。
 

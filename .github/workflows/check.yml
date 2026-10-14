@@ -21,4 +21,6 @@ jobs:
         if: failure()
         with:
           name: browser-test-results
-          path: examples/*/*/workbench/test-results/
+          path: |
+            examples/*/*/*/workbench/test-results/
+            test-results/

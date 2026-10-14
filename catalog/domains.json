@@ -1,85 +1,215 @@
 {
-  "version": 1,
+  "version": 2,
   "domains": [
     {
       "id": "crm",
+      "serviceModel": "saas",
       "title": "客户与销售 CRM",
-      "summary": "客户、联系人、商机与跟进"
+      "summary": "客户、联系人、商机与销售跟进"
     },
     {
       "id": "erp",
+      "serviceModel": "saas",
       "title": "企业资源 ERP",
       "summary": "订单、采购、库存与资源核算"
     },
     {
       "id": "mes",
+      "serviceModel": "saas",
       "title": "制造执行 MES",
-      "summary": "工单、工序、在制品与产线"
+      "summary": "工单、工序、在制品与产线执行"
     },
     {
       "id": "wms",
-      "title": "仓储物流 WMS",
+      "serviceModel": "saas",
+      "title": "仓储管理 WMS",
       "summary": "库位、出入库、盘点与拣配"
     },
     {
       "id": "scm",
-      "title": "供应链与供应商 SCM",
-      "summary": "供应商、供应计划与交付"
+      "serviceModel": "saas",
+      "title": "供应链管理 SCM",
+      "summary": "供需计划、供应协同与交付协调"
     },
     {
       "id": "hrm",
+      "serviceModel": "saas",
       "title": "人力资源 HRM",
       "summary": "员工、招聘、入职与绩效"
     },
     {
       "id": "finance",
+      "serviceModel": "saas",
       "title": "财务与费用",
       "summary": "应收应付、费用与预算"
     },
     {
       "id": "oa",
+      "serviceModel": "saas",
       "title": "办公与审批 OA",
       "summary": "审批单、通知与办公申请"
     },
     {
       "id": "itsm",
+      "serviceModel": "saas",
       "title": "IT 服务与运维 ITSM",
-      "summary": "服务单、设备、事件与变更"
+      "summary": "服务单、IT 设备、事件与变更"
     },
     {
       "id": "projects",
+      "serviceModel": "saas",
       "title": "项目与研发协作",
-      "summary": "项目、任务、需求与交付"
+      "summary": "项目、任务、需求与交付协作"
     },
     {
       "id": "analytics",
+      "serviceModel": "saas",
       "title": "数据分析 BI",
-      "summary": "指标、数据集与分析结果"
+      "summary": "业务指标、报表、仪表盘与分析结果"
     },
     {
       "id": "dam",
+      "serviceModel": "saas",
       "title": "数字资产管理 DAM",
       "summary": "人物、图片、视频与素材版本"
     },
     {
       "id": "cms",
+      "serviceModel": "saas",
       "title": "内容与知识管理 CMS",
       "summary": "内容、知识条目与发布版本"
     },
     {
       "id": "marketing",
+      "serviceModel": "saas",
       "title": "营销与内容制作",
       "summary": "活动、创意、渠道与制作任务"
     },
     {
       "id": "commerce",
+      "serviceModel": "saas",
       "title": "电商与零售",
       "summary": "商品、门店、交易与售后"
     },
     {
       "id": "service",
+      "serviceModel": "saas",
       "title": "客户服务",
       "summary": "服务请求、知识、反馈与工单"
+    },
+    {
+      "id": "srm",
+      "serviceModel": "saas",
+      "title": "供应商关系 SRM",
+      "summary": "供应商准入、资质、寻源与绩效"
+    },
+    {
+      "id": "plm",
+      "serviceModel": "saas",
+      "title": "产品生命周期 PLM",
+      "summary": "产品定义、设计版本、工程变更与物料清单"
+    },
+    {
+      "id": "qms",
+      "serviceModel": "saas",
+      "title": "质量管理 QMS",
+      "summary": "检验、质量异常、不合格品与纠正措施"
+    },
+    {
+      "id": "eam",
+      "serviceModel": "saas",
+      "title": "企业资产管理 EAM",
+      "summary": "设备台账、保养、维修与资产生命周期"
+    },
+    {
+      "id": "tms",
+      "serviceModel": "saas",
+      "title": "运输管理 TMS",
+      "summary": "运单、承运商、运输调度与运费"
+    },
+    {
+      "id": "lms",
+      "serviceModel": "saas",
+      "title": "学习与培训 LMS",
+      "summary": "课程、学习任务、培训记录与考核"
+    },
+    {
+      "id": "app-platform",
+      "serviceModel": "paas",
+      "title": "应用开发与运行平台",
+      "summary": "应用构建、运行环境、发布与应用生命周期"
+    },
+    {
+      "id": "dbaas",
+      "serviceModel": "paas",
+      "title": "数据库服务 DBaaS",
+      "summary": "托管数据库实例、连接、容量与数据库运维"
+    },
+    {
+      "id": "baas",
+      "serviceModel": "paas",
+      "title": "后端服务 BaaS",
+      "summary": "应用身份、数据接口、函数与后端能力"
+    },
+    {
+      "id": "integration",
+      "serviceModel": "paas",
+      "title": "集成与接口平台",
+      "summary": "连接器、接口、事件与系统间数据交换"
+    },
+    {
+      "id": "low-code",
+      "serviceModel": "paas",
+      "title": "低代码开发平台",
+      "summary": "表单、数据模型、流程与应用编排"
+    },
+    {
+      "id": "devops",
+      "serviceModel": "paas",
+      "title": "DevOps 与交付平台",
+      "summary": "代码集成、构建流水线、制品与发布环境"
+    },
+    {
+      "id": "ai-platform",
+      "serviceModel": "paas",
+      "title": "AI 开发平台",
+      "summary": "模型接入、推理服务、评测与 AI 应用开发"
+    },
+    {
+      "id": "data-platform",
+      "serviceModel": "paas",
+      "title": "数据工程平台",
+      "summary": "数据采集、加工、编排、目录与治理"
+    },
+    {
+      "id": "compute",
+      "serviceModel": "iaas",
+      "title": "计算资源",
+      "summary": "虚拟机、计算规格、镜像与资源配额"
+    },
+    {
+      "id": "storage",
+      "serviceModel": "iaas",
+      "title": "存储资源",
+      "summary": "对象、块与文件存储的容量、访问与生命周期"
+    },
+    {
+      "id": "networking",
+      "serviceModel": "iaas",
+      "title": "网络资源",
+      "summary": "虚拟网络、子网、负载均衡与网络连接"
+    },
+    {
+      "id": "containers",
+      "serviceModel": "iaas",
+      "title": "容器与集群基础设施",
+      "summary": "容器集群、节点、命名空间与基础资源配额"
+    },
+    {
+      "id": "backup",
+      "serviceModel": "iaas",
+      "title": "备份与灾难恢复",
+      "summary": "备份策略、恢复点、恢复任务与灾备演练"
     }
   ]
 }

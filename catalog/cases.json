@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "cases": [
     {
       "id": "character-material-library",
@@ -13,7 +13,8 @@
         "virtual-try-on"
       ],
       "status": "prototype",
-      "path": "examples/dam/character-material-library"
+      "path": "examples/saas/dam/character-material-library",
+      "serviceModel": "saas"
     },
     {
       "id": "factory-operations",
@@ -28,7 +29,8 @@
         "multi-provider"
       ],
       "status": "integrated",
-      "path": "examples/mes/factory-operations"
+      "path": "examples/saas/mes/factory-operations",
+      "serviceModel": "saas"
     }
   ]
 }

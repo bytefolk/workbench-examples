@@ -2,7 +2,7 @@
 
 工作台以业务模型组织页面，以三个独立端口访问外部服务。部署者选择数据库、身份系统和资产平台；Supabase 是一个可运行适配器，不是案例格式或业务模型的必需依赖。
 
-当前参考实现为 [工厂运营工作台](../examples/mes/factory-operations/README.md)。准确的 TypeScript 类型以 [contracts.ts](../examples/mes/factory-operations/workbench/src/data/contracts.ts) 为准。此契约是该案例的 v1 接入约定，尚未承诺所有未来案例使用完全相同的业务实体。
+当前参考实现为 [工厂运营工作台](../examples/saas/mes/factory-operations/README.md)。准确的 TypeScript 类型以 [contracts.ts](../examples/saas/mes/factory-operations/workbench/src/data/contracts.ts) 为准。此契约是该案例的 v1 接入约定，尚未承诺所有未来案例使用完全相同的业务实体。
 
 ## 三个端口
 
@@ -14,7 +14,7 @@
 
 页面依赖 `DataServices`，不导入 Supabase 客户端或直接发出 SQL。三个端口可以分别实现和组合，例如企业身份服务 + MySQL 业务 API + 现有资产平台；组合时应由服务端统一识别用户 ID、工作区 ID 和授权语义。把三个对象拼在一起并不会自动建立不同服务间的信任或 token 交换。
 
-内置配置工厂提供 Supabase 与 HTTP 两套完整组合。若需混合提供方，用 [data/index.ts](../examples/mes/factory-operations/workbench/src/data/index.ts) 的 `composeDataServices` 注入遵守这些端口的实现，或通过 `registerDataProvider` 注册新组合，并完成相同权限与失败测试。当前配置界面选择一套组合，不提供三套地址的任意拼接向导。
+内置配置工厂提供 Supabase 与 HTTP 两套完整组合。若需混合提供方，用 [data/index.ts](../examples/saas/mes/factory-operations/workbench/src/data/index.ts) 的 `composeDataServices` 注入遵守这些端口的实现，或通过 `registerDataProvider` 注册新组合，并完成相同权限与失败测试。当前配置界面选择一套组合，不提供三套地址的任意拼接向导。
 
 ## 配置与状态
 
@@ -27,7 +27,7 @@
 
 ## HTTP 接入 v1
 
-参考客户端为 [http.ts](../examples/mes/factory-operations/workbench/src/data/http.ts)。`VITE_API_BASE_URL` 可带 `/api/workbench` 等前缀；下表路由附加在该地址之后。返回业务对象直接使用 `contracts.ts` 的 camelCase 字段，不再包一层 `data`。
+参考客户端为 [http.ts](../examples/saas/mes/factory-operations/workbench/src/data/http.ts)。`VITE_API_BASE_URL` 可带 `/api/workbench` 等前缀；下表路由附加在该地址之后。返回业务对象直接使用 `contracts.ts` 的 camelCase 字段，不再包一层 `data`。
 
 | 方法与路径                      | 请求                                            | 成功响应                                   |
 | ------------------------------- | ----------------------------------------------- | ------------------------------------------ |
@@ -71,4 +71,4 @@
 
 ## 新提供方验收
 
-使用合成数据检查登录与退出、工作区隔离、全部角色限制、真实写入与刷新回读、状态并发冲突、幂等重试、附件上传和越权拒绝。参考案例 [acceptance.md](../examples/mes/factory-operations/acceptance.md)。通过软件契约测试只说明接口调用符合预期；外部服务仍需自己的集成证据。
+使用合成数据检查登录与退出、工作区隔离、全部角色限制、真实写入与刷新回读、状态并发冲突、幂等重试、附件上传和越权拒绝。参考案例 [acceptance.md](../examples/saas/mes/factory-operations/acceptance.md)。通过软件契约测试只说明接口调用符合预期；外部服务仍需自己的集成证据。

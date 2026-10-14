@@ -35,39 +35,142 @@ async function existsInside(base, relative) {
   return target;
 }
 
-export async function validateRepository() {
-  const domains = await json("catalog/domains.json");
-  const catalog = await json("catalog/cases.json");
-  await validateDocument(domains, "schemas/domains.schema.json");
-  await validateDocument(catalog, "schemas/catalog.schema.json");
-  const domainIds = new Set(domains.domains.map((domain) => domain.id));
-  assert.equal(domainIds.size, domains.domains.length, "Duplicate domain IDs");
+/** 校验服务模型、产品领域和案例的父子关系，不依赖磁盘内容。 */
+export function validateTaxonomy(serviceModels, domains, catalog) {
+  const serviceModelIds = new Set(
+    serviceModels.serviceModels.map((model) => model.id),
+  );
+  assert.equal(
+    serviceModelIds.size,
+    serviceModels.serviceModels.length,
+    "Duplicate service model IDs",
+  );
+  assert.deepEqual(
+    [...serviceModelIds].sort(),
+    ["iaas", "paas", "saas"],
+    "Expected SaaS, PaaS and IaaS service models",
+  );
+  const domainsById = new Map();
+  for (const domain of domains.domains) {
+    assert(!domainsById.has(domain.id), `Duplicate domain: ${domain.id}`);
+    assert(
+      serviceModelIds.has(domain.serviceModel),
+      `Unknown service model for domain ${domain.id}: ${domain.serviceModel}`,
+    );
+    domainsById.set(domain.id, domain);
+  }
   const caseIds = new Set();
   for (const entry of catalog.cases) {
     assert(!caseIds.has(entry.id), `Duplicate case: ${entry.id}`);
     caseIds.add(entry.id);
-    assert(domainIds.has(entry.domain), `Unknown domain: ${entry.domain}`);
+    assert(
+      serviceModelIds.has(entry.serviceModel),
+      `Unknown service model: ${entry.serviceModel}`,
+    );
+    assert(domainsById.has(entry.domain), `Unknown domain: ${entry.domain}`);
+    assert.equal(
+      domainsById.get(entry.domain).serviceModel,
+      entry.serviceModel,
+      `Domain ${entry.domain} does not belong to service model ${entry.serviceModel}`,
+    );
     assert.equal(
       entry.path,
-      `examples/${entry.domain}/${entry.id}`,
-      "Case path does not match ID/domain",
+      `examples/${entry.serviceModel}/${entry.domain}/${entry.id}`,
+      "Case path does not match service model/domain/ID",
     );
+  }
+  return { serviceModelIds, domainsById };
+}
+
+export function validateCatalogManifest(entry, manifest) {
+  for (const field of [
+    "id",
+    "title",
+    "summary",
+    "serviceModel",
+    "domain",
+    "status",
+    "tags",
+  ]) {
+    assert.deepEqual(
+      manifest[field],
+      entry[field],
+      `Catalog drift in ${entry.id}.${field}`,
+    );
+  }
+}
+
+/** 只统计真实案例目录；未交付领域只在字典中声明，不建立空目录。 */
+export async function collectCasePaths(
+  repositoryRoot,
+  serviceModelIds,
+  domainsById,
+) {
+  const actualPaths = [];
+  for (const model of await fs.readdir(path.join(repositoryRoot, "examples"), {
+    withFileTypes: true,
+  })) {
+    if (!model.isDirectory()) continue;
+    assert(
+      serviceModelIds.has(model.name),
+      `Unknown examples service model: ${model.name}`,
+    );
+    const modelPath = path.join(repositoryRoot, "examples", model.name);
+    const domainDirectories = (
+      await fs.readdir(modelPath, { withFileTypes: true })
+    ).filter((entry) => entry.isDirectory());
+    assert(
+      domainDirectories.length,
+      `Empty service model directory: ${model.name}`,
+    );
+    for (const domain of domainDirectories) {
+      assert(
+        domainsById.has(domain.name),
+        `Unknown examples domain: ${domain.name}`,
+      );
+      assert.equal(
+        domainsById.get(domain.name).serviceModel,
+        model.name,
+        `Examples domain ${domain.name} does not belong to service model ${model.name}`,
+      );
+      const domainPath = path.join(modelPath, domain.name);
+      const cases = (
+        await fs.readdir(domainPath, { withFileTypes: true })
+      ).filter((entry) => entry.isDirectory());
+      assert(
+        cases.length,
+        `Empty domain directory: ${model.name}/${domain.name}`,
+      );
+      for (const item of cases) {
+        const casePath = `examples/${model.name}/${domain.name}/${item.name}`;
+        const manifestPath = path.join(repositoryRoot, casePath, "case.json");
+        assert(
+          (await fs.stat(manifestPath)).isFile(),
+          `Case manifest missing: ${casePath}`,
+        );
+        actualPaths.push(casePath);
+      }
+    }
+  }
+  return actualPaths;
+}
+
+export async function validateRepository() {
+  const serviceModels = await json("catalog/service-models.json");
+  const domains = await json("catalog/domains.json");
+  const catalog = await json("catalog/cases.json");
+  await validateDocument(serviceModels, "schemas/service-models.schema.json");
+  await validateDocument(domains, "schemas/domains.schema.json");
+  await validateDocument(catalog, "schemas/catalog.schema.json");
+  const { serviceModelIds, domainsById } = validateTaxonomy(
+    serviceModels,
+    domains,
+    catalog,
+  );
+  for (const entry of catalog.cases) {
     const manifest = await json(`${entry.path}/case.json`);
     await validateDocument(manifest, "schemas/case.schema.json");
-    for (const field of [
-      "id",
-      "title",
-      "summary",
-      "domain",
-      "status",
-      "tags",
-    ]) {
-      assert.deepEqual(
-        manifest[field],
-        entry[field],
-        `Catalog drift in ${entry.id}.${field}`,
-      );
-    }
+    validateCatalogManifest(entry, manifest);
     assert.equal(
       new Set(manifest.capabilities.map((cap) => cap.id)).size,
       manifest.capabilities.length,
@@ -127,24 +230,11 @@ export async function validateRepository() {
       );
     }
   }
-  // Every actual case must appear in the index; templates live outside examples/.
-  const actualPaths = [];
-  for (const domain of await fs.readdir(path.join(root, "examples"), {
-    withFileTypes: true,
-  })) {
-    if (!domain.isDirectory()) continue;
-    assert(
-      domainIds.has(domain.name),
-      `Unknown examples domain: ${domain.name}`,
-    );
-    for (const item of await fs.readdir(
-      path.join(root, "examples", domain.name),
-      { withFileTypes: true },
-    )) {
-      if (item.isDirectory())
-        actualPaths.push(`examples/${domain.name}/${item.name}`);
-    }
-  }
+  const actualPaths = await collectCasePaths(
+    root,
+    serviceModelIds,
+    domainsById,
+  );
   assert.deepEqual(
     actualPaths.sort(),
     catalog.cases.map((entry) => entry.path).sort(),
@@ -152,7 +242,7 @@ export async function validateRepository() {
   );
 
   const fixtures = await json(
-    "examples/dam/character-material-library/data/fixtures.json",
+    "examples/saas/dam/character-material-library/data/fixtures.json",
   );
   const characters = new Set(
     fixtures.characters.map((character) => character.id),
@@ -176,6 +266,7 @@ export async function validateRepository() {
     );
   }
   return {
+    serviceModels: serviceModels.serviceModels.length,
     domains: domains.domains.length,
     cases: catalog.cases.length,
     legacyDemoAssets: fixtures.assets.length,

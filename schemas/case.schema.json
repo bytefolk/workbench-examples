@@ -14,18 +14,36 @@
     "dataMode",
     "deliverables",
     "runtime",
-    "capabilities"
+    "capabilities",
+    "serviceModel"
   ],
   "properties": {
-    "version": { "const": 1 },
-    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
-    "title": { "type": "string", "minLength": 1 },
-    "summary": { "type": "string", "minLength": 1 },
-    "domain": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "version": {
+      "const": 2
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "domain": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
     "tags": {
       "type": "array",
       "uniqueItems": true,
-      "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      }
     },
     "status": {
       "enum": ["proposal", "specified", "prototype", "integrated", "verified"]
@@ -35,15 +53,25 @@
       "additionalProperties": false,
       "required": ["date", "kind", "summary", "customerConfirmed"],
       "properties": {
-        "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "date": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
         "kind": {
           "enum": ["business-discussion", "research", "customer-approved"]
         },
-        "summary": { "type": "string", "minLength": 1 },
-        "customerConfirmed": { "type": "boolean" }
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "customerConfirmed": {
+          "type": "boolean"
+        }
       }
     },
-    "dataMode": { "enum": ["synthetic", "anonymized", "mixed"] },
+    "dataMode": {
+      "enum": ["synthetic", "anonymized", "mixed"]
+    },
     "deliverables": {
       "type": "object",
       "additionalProperties": false,
@@ -57,13 +85,34 @@
         "evidence"
       ],
       "properties": {
-        "overview": { "type": "string", "minLength": 1 },
-        "requirements": { "type": "string", "minLength": 1 },
-        "workflows": { "type": "string", "minLength": 1 },
-        "dataModel": { "type": "string", "minLength": 1 },
-        "integrations": { "type": "string", "minLength": 1 },
-        "acceptance": { "type": "string", "minLength": 1 },
-        "evidence": { "type": "string", "minLength": 1 }
+        "overview": {
+          "type": "string",
+          "minLength": 1
+        },
+        "requirements": {
+          "type": "string",
+          "minLength": 1
+        },
+        "workflows": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dataModel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "integrations": {
+          "type": "string",
+          "minLength": 1
+        },
+        "acceptance": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
     "runtime": {
@@ -71,10 +120,19 @@
       "additionalProperties": false,
       "required": ["mode", "command", "entry", "reset"],
       "properties": {
-        "mode": { "enum": ["none", "static-local", "application"] },
-        "command": { "type": "string" },
-        "entry": { "type": "string" },
-        "reset": { "type": "string", "minLength": 1 }
+        "mode": {
+          "enum": ["none", "static-local", "application"]
+        },
+        "command": {
+          "type": "string"
+        },
+        "entry": {
+          "type": "string"
+        },
+        "reset": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
     "capabilities": {
@@ -85,12 +143,26 @@
         "additionalProperties": false,
         "required": ["id", "title", "mode", "description"],
         "properties": {
-          "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
-          "title": { "type": "string", "minLength": 1 },
-          "mode": { "enum": ["local", "mock", "unavailable", "connected"] },
-          "description": { "type": "string", "minLength": 1 }
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mode": {
+            "enum": ["local", "mock", "unavailable", "connected"]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       }
+    },
+    "serviceModel": {
+      "enum": ["saas", "paas", "iaas"]
     }
   }
 }

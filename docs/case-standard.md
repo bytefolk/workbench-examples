@@ -1,6 +1,14 @@
-# 工作台案例规范 v1
+# 工作台案例规范 v2
 
-本规范用于记录可复用的业务案例。案例标识与本仓库 schemas 一起演进，不替代产品或 SaaS 的接口契约。
+本规范用于记录可复用的工作台案例。案例标识与本仓库 schemas 一起演进，不替代业务产品、平台或基础设施的接口契约。
+
+## 分层与目录
+
+案例按“服务模型 → 领域 → 案例”组织，目录为 `examples/<serviceModel>/<domain>/<case-id>/`。`serviceModel` 从 [服务模型字典](../catalog/service-models.json) 选择 `saas`、`paas` 或 `iaas`，`domain` 必须属于该服务模型下的 [领域字典](../catalog/domains.json)。一个案例只有一个主路径，跨领域使用 tags 发现，不复制案例。
+
+服务模型描述工作台面向的目标能力：SaaS 业务应用、PaaS 开发与运行平台、IaaS 基础设施资源。这是案例库的分类维度，不表示仓库代码已作为托管服务交付。部署在本机、自托管或公共云，以及使用哪种数据库、身份系统和资产存储，均独立记录在 `integrations.md`。
+
+例如工厂运营工作台归 `saas/mes/factory-operations`，销售拜访通过 `crm` 标签关联；使用 Supabase 后端不会将该业务工作台改归 PaaS。详细分类和边界见 [领域分类](domains.md)。没有真实案例的分类只保留字典条目，不创建空案例目录。
 
 ## 最小交付
 
@@ -20,7 +28,9 @@
 
 ## 元信息
 
-`case.json` 按 `schemas/case.schema.json` 校验，包含稳定 id、中文标题、summary、主领域、tags、status、来源、数据模式、交付物路径、运行声明与逐项能力声明。catalog 必须与案例 manifest 完全一致。ID 全仓库唯一，文件路径使用仓库内相对路径。
+`case.json` 的 `version` 为 `2`，按 `schemas/case.schema.json` 校验，包含稳定 id、中文标题、summary、serviceModel、主领域 domain、tags、status、来源、数据模式、交付物路径、运行声明与逐项能力声明。catalog 中的 id、标题、summary、serviceModel、domain、tags 和 status 必须与案例 manifest 完全一致；path 必须为 `examples/<serviceModel>/<domain>/<id>`。ID 全仓库唯一。
+
+`deliverables` 与 `runtime.entry` 使用相对于案例目录的路径，必须落在该案例目录内。分类变更应同步移动目录、修改 catalog 和 manifest、修复文档链接与测试路径；npm workspace 目录约定为 `examples/*/*/*/workbench`。从 v1 迁移时为现有案例补充明确的 serviceModel，不根据所用云厂商自动推断。
 
 能力 mode：
 

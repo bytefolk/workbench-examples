@@ -3,62 +3,170 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#245743" />
+    <meta
+      name="description"
+      content="按 SaaS、PaaS、IaaS 服务分层探索 ByteFolk 工作台案例，再按 CRM、ERP、MES 等子类查找具体场景。"
+    />
     <title>ByteFolk · 工作台案例库</title>
-    <link rel="stylesheet" href="shared/demo.css" />
+    <link rel="stylesheet" href="catalog/catalog.css" />
   </head>
   <body>
-    <header>
-      <a class="brand" href="/"
-        ><span class="mark">B</span> ByteFolk
-        <span class="muted">/ 工作台案例库</span></a
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="ByteFolk 工作台案例库首页"
+        ><span class="brand-mark">B<span>·</span></span
+        ><span
+          >ByteFolk<span class="brand-divider">/</span
+          ><small>工作台案例库</small></span
+        ></a
       >
-      <nav class="header-links">
+      <nav class="header-links" aria-label="网站导航">
         <a href="docs/case-standard.md">案例规范</a
-        ><a href="https://github.com/bytefolk/workbench-examples">GitHub ↗</a>
+        ><a
+          href="https://github.com/bytefolk/workbench-examples"
+          target="_blank"
+          rel="noreferrer"
+          >GitHub <span aria-hidden="true">↗</span></a
+        >
       </nav>
     </header>
     <main>
-      <section class="hero">
+      <section class="hero" aria-labelledby="page-title">
         <div>
-          <div class="eyebrow">Workbench Examples</div>
-          <h1>从业务场景，到可体验的工作台</h1>
+          <div class="eyebrow"><span></span> WORKBENCH EXAMPLES / 案例索引</div>
+          <h1 id="page-title">从服务分层，找到你的<span>工作台。</span></h1>
           <p>
-            把真实工作中的需求，沉淀为可演示、可验证、可复用的案例。按业务领域探索，选择一个场景开始。
+            先选择服务层，再进入业务或技术分类。<br
+              class="mobile-break"
+            />让每个场景，都有清晰的位置。
           </p>
         </div>
-        <a class="button" href="CONTRIBUTING.md">新增案例指南 ↗</a>
+        <div class="hero-index" aria-hidden="true">
+          <span>EXPLORE THE LAYERS</span>
+          <div><i>01</i> 应用 <b>/</b> 平台 <b>/</b> 基础设施</div>
+          <small>需求 · 流程 · 数据 · 验证</small>
+        </div>
       </section>
-      <div class="notice">
-        示例使用合成数据；云端工作台使用各部署方配置的数据源。已连接、模拟和待接入能力会在案例内明确说明。
+      <section class="layer-section" aria-labelledby="layer-heading">
+        <div class="section-label">
+          <h2 id="layer-heading"><span>01</span> 选择服务层</h2>
+          <span>从应用场景到基础资源</span>
+        </div>
+        <div
+          id="service-models"
+          class="service-models"
+          aria-label="服务层"
+          aria-busy="true"
+        >
+          <div class="loading-panel" role="status">正在加载服务分类…</div>
+        </div>
+      </section>
+      <div id="catalog-error" class="catalog-error" role="alert" hidden>
+        <div>
+          <strong>目录暂时无法加载</strong>
+          <p id="error-message"></p>
+        </div>
+        <button id="retry" type="button">
+          重新加载 <span aria-hidden="true">↻</span>
+        </button>
       </div>
-      <div class="layout">
-        <aside class="panel sidebar">
-          <h3>业务领域</h3>
-          <div id="domains"></div>
-        </aside>
-        <section>
-          <div class="toolbar">
-            <input
-              id="search"
-              type="search"
-              placeholder="搜索工作台、场景或标签"
-              aria-label="搜索案例"
-            /><select id="domain-select" aria-label="筛选业务领域">
-              <option value="all">全部领域</option>
-            </select>
+      <div class="catalog-layout" id="catalog-content" hidden>
+        <aside class="category-panel" aria-labelledby="category-heading">
+          <div class="category-heading">
+            <h2 id="category-heading">
+              <span>02</span> <span id="category-layer">SaaS</span> 分类
+            </h2>
+            <span id="domain-total" class="count-pill"></span>
           </div>
-          <p id="summary" class="catalog-summary" aria-live="polite"></p>
-          <div id="cases" class="grid"></div>
-          <div id="empty" class="empty" hidden>
-            <h3>这个领域还没有案例</h3>
-            <p>已定义分类，等待实际业务需求和案例收录。</p>
-            <a href="CONTRIBUTING.md">查看新增案例指南 →</a>
+          <label class="search-box category-search"
+            ><svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="10.5" cy="10.5" r="6.5"></circle>
+              <path d="m16 16 4 4"></path></svg
+            ><input
+              id="domain-search"
+              type="search"
+              placeholder="查找分类，如 CRM、MES"
+              aria-label="查找子类"
+          /></label>
+          <div id="domains" class="domain-list" aria-label="子类筛选"></div>
+          <p id="no-domains" class="no-domains" hidden>
+            没有匹配的分类，换个关键词试试。
+          </p>
+          <div class="category-footer">
+            <span></span>分类已定义，案例持续收录中
+          </div>
+        </aside>
+        <section class="results" aria-labelledby="results-title">
+          <div class="results-heading">
+            <div>
+              <nav
+                id="breadcrumb"
+                class="breadcrumb"
+                aria-label="当前分类"
+              ></nav>
+              <h2 id="results-title">全部业务应用</h2>
+              <p id="domain-description"></p>
+            </div>
+            <span id="results-count" class="results-count"></span>
+          </div>
+          <div class="results-toolbar">
+            <label class="search-box case-search"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="10.5" cy="10.5" r="6.5"></circle>
+                <path d="m16 16 4 4"></path></svg
+              ><input
+                id="search"
+                type="search"
+                placeholder="搜索案例名称、场景或标签…"
+                aria-label="搜索案例" /></label
+            ><span
+              id="summary"
+              class="catalog-summary"
+              aria-live="polite"
+            ></span>
+          </div>
+          <div id="cases" class="case-grid"></div>
+          <div id="empty" class="empty-state" hidden>
+            <div class="empty-symbol" aria-hidden="true">
+              <svg viewBox="0 0 48 48">
+                <path d="M8 14h12l4 5h16v20H8z" />
+                <path d="M8 24h32M21 30h6" />
+              </svg>
+            </div>
+            <span class="eyebrow" id="empty-code">ROOM FOR THE NEXT IDEA</span>
+            <h3 id="empty-title">这个分类暂无案例</h3>
+            <p id="empty-description">分类已建立，尚未收录实际案例。</p>
+            <div class="empty-actions">
+              <button
+                id="clear-filter"
+                type="button"
+                class="button secondary"
+                hidden
+              >
+                清除搜索</button
+              ><a class="button primary" href="CONTRIBUTING.md"
+                >贡献第一个案例 <span aria-hidden="true">↗</span></a
+              >
+            </div>
+          </div>
+          <div class="catalog-note">
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="m10 2 6 3v5c0 4-6 7-6 7s-6-3-6-7V5z" />
+              <path d="m7 9 2 2 4-4" />
+            </svg>
+            <p>
+              每个案例标明实际交付状态。模拟能力、真实连接与待接入服务，在案例中分别说明。
+            </p>
           </div>
         </section>
       </div>
-      <p class="footer-note">
-        ByteFolk Workbench Examples · 案例规格、合成数据与实际验证证据一起维护。
-      </p>
+      <footer class="site-footer">
+        <span>BYTEFOLK <span>/</span> WORKBENCH EXAMPLES</span>
+        <p>让真实需求，成为可复用的工作台。</p>
+        <a href="CONTRIBUTING.md"
+          >收录你的案例 <span aria-hidden="true">↗</span></a
+        >
+      </footer>
     </main>
     <script type="module" src="catalog/app.mjs"></script>
   </body>

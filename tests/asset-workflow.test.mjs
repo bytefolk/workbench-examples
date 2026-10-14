@@ -6,12 +6,12 @@ import {
   completeMockJob,
   findAssets,
   emotionCoverage,
-} from "../examples/dam/character-material-library/demo/model.mjs";
+} from "../examples/saas/dam/character-material-library/demo/model.mjs";
 
 const fixture = JSON.parse(
   await fs.readFile(
     new URL(
-      "../examples/dam/character-material-library/data/fixtures.json",
+      "../examples/saas/dam/character-material-library/data/fixtures.json",
       import.meta.url,
     ),
   ),

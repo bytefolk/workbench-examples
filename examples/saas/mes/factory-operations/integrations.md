@@ -1,6 +1,6 @@
 # 集成与部署
 
-所有业务页面使用 [标准端口](../../../docs/data-provider-contract.md)。本案例可以采用 Supabase，或由企业通过 HTTP 接入 MySQL、现有资产平台与身份服务。每个部署独立选择；端口也可以分别实现后组合，业务代码不绑定数据库产品。
+所有业务页面使用 [标准端口](../../../../docs/data-provider-contract.md)。本案例可以采用 Supabase，或由企业通过 HTTP 接入 MySQL、现有资产平台与身份服务。每个部署独立选择；端口也可以分别实现后组合，业务代码不绑定数据库产品。
 
 ## 交付状态
 
@@ -58,14 +58,14 @@
 在 Linux/WSL 中，从仓库根目录运行：
 
 ```bash
-FACTORY_SMOKE_CONFIG=/absolute/path/outside-repository/factory-smoke.json node examples/mes/factory-operations/workbench/scripts/cloud-smoke.mjs
+FACTORY_SMOKE_CONFIG=/absolute/path/outside-repository/factory-smoke.json node examples/saas/mes/factory-operations/workbench/scripts/cloud-smoke.mjs
 ```
 
 检查命令退出状态、逐项 `PASS` 与本机忽略目录 `workbench/.local/cloud-smoke-result.json`。该结果可能只覆盖失败前已通过的项目，不能只因文件存在就判断全部通过。脚本不自动删除测试业务数据；部署管理员可根据结果中的 ID 清理。不要把账号文件或包含账号 ID 的原始结果作为公开证据提交；公开验证记录仅保存覆盖范围和通过情况。
 
 ## 企业 HTTP 组合
 
-设置 `VITE_DATA_PROVIDER=http` 和 `VITE_API_BASE_URL`，或在连接设置中选“自有数据平台”。所有路由、输入、响应、Cookie 会话、CSRF、版本及请求幂等约定见 [数据提供方契约](../../../docs/data-provider-contract.md)。
+设置 `VITE_DATA_PROVIDER=http` 和 `VITE_API_BASE_URL`，或在连接设置中选“自有数据平台”。所有路由、输入、响应、Cookie 会话、CSRF、版本及请求幂等约定见 [数据提供方契约](../../../../docs/data-provider-contract.md)。
 
 后端应实现与 Supabase 组合相同的业务语义：可信身份、工作区隔离、角色权限、原子状态推进和资产授权。MySQL 连接池和凭据放在后端；现有资产平台通过稳定 ID 与受控下载 URL 接入。HTTP 客户端不会把一个任意 URL 自动转换为可用平台，也不会自动部署数据库。
 
